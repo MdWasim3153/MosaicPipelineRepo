@@ -1,0 +1,63 @@
+{
+	"name": "ICRISstgFormula",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "TalendId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ColorId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StagingId",
+				"type": "nvarchar"
+			},
+			{
+				"name": "QualityId",
+				"type": "nvarchar"
+			},
+			{
+				"name": "UndercoatCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Deleted",
+				"type": "bit"
+			},
+			{
+				"name": "DateCreated",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "DateModified",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "DateModifiedTalend",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ICRIS_stg_Formula"
+		}
+	}
+}

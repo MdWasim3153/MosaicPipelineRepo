@@ -1,0 +1,89 @@
+{
+	"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "stgColor",
+						"type": "DatasetReference"
+					},
+					"name": "stgColor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "ICRISstgFormula"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "stgFormula"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "JoinOnFormula"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as string,",
+				"          originated as string,",
+				"          universal_code as string,",
+				"          color_name as string,",
+				"          year as decimal(4,0),",
+				"          version as decimal(4,0),",
+				"          version_date as date,",
+				"          brand as string,",
+				"          effect as string,",
+				"          density as decimal(8,4),",
+				"          last_update as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgColor",
+				"source(output(",
+				"          Id as integer,",
+				"          TalendId as integer,",
+				"          ColorId as integer,",
+				"          StagingId as string,",
+				"          QualityId as string,",
+				"          UndercoatCode as string,",
+				"          Deleted as boolean,",
+				"          DateCreated as timestamp,",
+				"          DateModified as timestamp,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ICRISstgFormula",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          line as string,",
+				"          subline as string,",
+				"          undercoat as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgFormula",
+				"stgColor, stgFormula join(stgColor@id == color,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinOnFormula"
+			]
+		}
+	}
+}

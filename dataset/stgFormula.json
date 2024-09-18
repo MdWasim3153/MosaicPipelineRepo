@@ -1,0 +1,43 @@
+{
+	"name": "stgFormula",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "decimal",
+				"precision": 8,
+				"scale": 0
+			},
+			{
+				"name": "originated",
+				"type": "varchar"
+			},
+			{
+				"name": "color",
+				"type": "varchar"
+			},
+			{
+				"name": "line",
+				"type": "varchar"
+			},
+			{
+				"name": "subline",
+				"type": "varchar"
+			},
+			{
+				"name": "undercoat",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stg_Formula"
+		}
+	}
+}

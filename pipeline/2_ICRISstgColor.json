@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "2_ProcessBrazilDataToICRIS_Color",
+						"referenceName": "2_ProcessBrazilDataToICRIS_Color_DF",
 						"type": "DataFlowReference"
 					},
 					"compute": {

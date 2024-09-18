@@ -1,5 +1,5 @@
 {
-	"name": "2_ProcessBrazilDataToICRIS_Color",
+	"name": "2_ProcessBrazilDataToICRIS_Color_DF",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
