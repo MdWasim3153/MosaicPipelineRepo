@@ -69,7 +69,7 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/ICRISstgBrand')]",
+			"name": "[concat(parameters('factoryName'), '/1_ICRISstgBrand')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -973,6 +973,56 @@
 				"[concat(variables('factoryId'), '/datasets/ICRISstgColor')]",
 				"[concat(variables('factoryId'), '/datasets/TableJson')]",
 				"[concat(variables('factoryId'), '/datasets/stgVariant')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/2_ICRISstgColor')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "2_ProcessBrazilDataToICRIS_Color",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "2_ProcessBrazilDataToICRIS_Color",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgColor": {},
+									"ICRISstgColor": {},
+									"JsonFile": {},
+									"stgVariant": {},
+									"InsertSinkColor": {},
+									"UpdateSinkColor": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/2_ProcessBrazilDataToICRIS_Color')]"
 			]
 		}
 	]
