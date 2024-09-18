@@ -1,5 +1,5 @@
 {
-	"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
+	"name": "3_NTWORKINGProcessBrazilDataToICRIS_Formula_DF",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -30,6 +30,12 @@
 			"transformations": [
 				{
 					"name": "JoinOnFormula"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "split1"
 				}
 			],
 			"scriptLines": [
@@ -79,10 +85,17 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> stgFormula",
 				"stgColor, stgFormula join(stgColor@id == color,",
-				"     joinType:'inner',",
+				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> JoinOnFormula"
+				"     broadcast: 'auto')~> JoinOnFormula",
+				"JoinOnFormula, ICRISstgFormula join(stgColor@id == StagingId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 split(isNull(StagingId),",
+				"     disjoint: false) ~> split1@(stagingidISNULL, stagingidISnotNULL)"
 			]
 		}
 	}

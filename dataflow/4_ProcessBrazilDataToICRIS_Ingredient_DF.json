@@ -1,0 +1,141 @@
+{
+	"name": "4_ProcessBrazilDataToICRIS_Ingredient_DF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "stgIngredient",
+						"type": "DatasetReference"
+					},
+					"name": "stgIngredient"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "stgFormula"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgProduct",
+						"type": "DatasetReference"
+					},
+					"name": "stgProduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgColor",
+						"type": "DatasetReference"
+					},
+					"name": "stgColor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "ICRISStgFormula"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISStgIngredient",
+						"type": "DatasetReference"
+					},
+					"name": "ICRISStgIngredient"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          product as string,",
+				"          amount as decimal(8,4),",
+				"          formula as decimal(8,0),",
+				"          ordination as decimal(2,0)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgIngredient",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          line as string,",
+				"          subline as string,",
+				"          undercoat as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgFormula",
+				"source(output(",
+				"          id as string,",
+				"          display_id as string,",
+				"          originated as string,",
+				"          product_name as string,",
+				"          type as decimal(2,0),",
+				"          used_in_formula as decimal(1,0),",
+				"          density as decimal(8,4)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgProduct",
+				"source(output(",
+				"          id as string,",
+				"          originated as string,",
+				"          universal_code as string,",
+				"          color_name as string,",
+				"          year as decimal(4,0),",
+				"          version as decimal(4,0),",
+				"          version_date as date,",
+				"          brand as string,",
+				"          effect as string,",
+				"          density as decimal(8,4),",
+				"          last_update as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgColor",
+				"source(output(",
+				"          Id as integer,",
+				"          TalendId as integer,",
+				"          ColorId as integer,",
+				"          StagingId as string,",
+				"          QualityId as string,",
+				"          UndercoatCode as string,",
+				"          Deleted as boolean,",
+				"          DateCreated as timestamp,",
+				"          DateModified as timestamp,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ICRISStgFormula",
+				"source(output(",
+				"          FormulaId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Line as integer,",
+				"          ProductCode as string,",
+				"          Amount as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp,",
+				"          TalendId as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ICRISStgIngredient"
+			]
+		}
+	}
+}

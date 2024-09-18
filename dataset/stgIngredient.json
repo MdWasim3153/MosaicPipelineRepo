@@ -1,0 +1,49 @@
+{
+	"name": "stgIngredient",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "decimal",
+				"precision": 8,
+				"scale": 0
+			},
+			{
+				"name": "originated",
+				"type": "varchar"
+			},
+			{
+				"name": "product",
+				"type": "varchar"
+			},
+			{
+				"name": "amount",
+				"type": "decimal",
+				"precision": 8,
+				"scale": 4
+			},
+			{
+				"name": "formula",
+				"type": "decimal",
+				"precision": 8,
+				"scale": 0
+			},
+			{
+				"name": "ordination",
+				"type": "decimal",
+				"precision": 2,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stg_Ingredient"
+		}
+	}
+}
