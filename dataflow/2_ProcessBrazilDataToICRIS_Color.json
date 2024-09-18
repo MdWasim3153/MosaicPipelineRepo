@@ -264,7 +264,20 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> UpdateSinkColor"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          StagingId = CheckingIFNULL@StagingIdISnotNULL@id,",
+				"          Code = universal_code,",
+				"          BrandCode = brand,",
+				"          VariantCode = description,",
+				"          Year = CheckingIFNULL@StagingIdISnotNULL@Year,",
+				"          Name = color_name,",
+				"          Use,",
+				"          Effect = target,",
+				"          Deleted,",
+				"          DateModified = version_date,",
+				"          DateModifiedTalend = last_update",
+				"     )) ~> UpdateSinkColor"
 			]
 		}
 	}
