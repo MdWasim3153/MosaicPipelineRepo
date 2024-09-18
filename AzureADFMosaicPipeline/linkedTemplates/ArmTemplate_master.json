@@ -1,0 +1,140 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "AzureADFMosaicPipeline"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureBlobStorage2_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage2'"
+		},
+		"AzureSqlDatabase1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlDatabase1'"
+		},
+		"BRSpectro_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'BRSpectro'"
+		},
+		"OnPremDatabase_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremDatabase'"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "brazildb.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "BrazilDB"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "user"
+		},
+		"BRSpectro_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "brazildb.database.windows.net"
+		},
+		"BRSpectro_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "BrazilDB"
+		},
+		"BRSpectro_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "user"
+		},
+		"OnPremDatabase_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "PF4WB9DF\\SQLEXP2019"
+		},
+		"OnPremDatabase_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AdventureWorks2019"
+		},
+		"OnPremDatabase_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "AzureADFMosaicPipeline_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureBlobStorage1_connectionString": {
+						"value": "[parameters('AzureBlobStorage1_connectionString')]"
+					},
+					"AzureBlobStorage2_connectionString": {
+						"value": "[parameters('AzureBlobStorage2_connectionString')]"
+					},
+					"AzureSqlDatabase1_password": {
+						"value": "[parameters('AzureSqlDatabase1_password')]"
+					},
+					"BRSpectro_password": {
+						"value": "[parameters('BRSpectro_password')]"
+					},
+					"OnPremDatabase_password": {
+						"value": "[parameters('OnPremDatabase_password')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_server')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_database')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_userName')]"
+					},
+					"BRSpectro_properties_typeProperties_server": {
+						"value": "[parameters('BRSpectro_properties_typeProperties_server')]"
+					},
+					"BRSpectro_properties_typeProperties_database": {
+						"value": "[parameters('BRSpectro_properties_typeProperties_database')]"
+					},
+					"BRSpectro_properties_typeProperties_userName": {
+						"value": "[parameters('BRSpectro_properties_typeProperties_userName')]"
+					},
+					"OnPremDatabase_properties_typeProperties_server": {
+						"value": "[parameters('OnPremDatabase_properties_typeProperties_server')]"
+					},
+					"OnPremDatabase_properties_typeProperties_database": {
+						"value": "[parameters('OnPremDatabase_properties_typeProperties_database')]"
+					},
+					"OnPremDatabase_properties_typeProperties_userName": {
+						"value": "[parameters('OnPremDatabase_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

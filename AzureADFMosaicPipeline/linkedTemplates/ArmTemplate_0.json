@@ -1,0 +1,979 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "AzureADFMosaicPipeline"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureBlobStorage2_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage2'"
+		},
+		"AzureSqlDatabase1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlDatabase1'"
+		},
+		"BRSpectro_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'BRSpectro'"
+		},
+		"OnPremDatabase_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremDatabase'"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "brazildb.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "BrazilDB"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "user"
+		},
+		"BRSpectro_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "brazildb.database.windows.net"
+		},
+		"BRSpectro_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "BrazilDB"
+		},
+		"BRSpectro_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "user"
+		},
+		"OnPremDatabase_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "PF4WB9DF\\SQLEXP2019"
+		},
+		"OnPremDatabase_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AdventureWorks2019"
+		},
+		"OnPremDatabase_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage2')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage2_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('AzureSqlDatabase1_properties_typeProperties_server')]",
+					"database": "[parameters('AzureSqlDatabase1_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('AzureSqlDatabase1_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('AzureSqlDatabase1_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BRSpectro')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('BRSpectro_properties_typeProperties_server')]",
+					"database": "[parameters('BRSpectro_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('BRSpectro_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('BRSpectro_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremSQLData')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"description": "Database stored on my local machine",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgBrand')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_Brand"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgColor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StagingId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "BrandCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "VariantCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Use",
+						"type": "bit"
+					},
+					{
+						"name": "Red",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Green",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Blue",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Effect",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateCreated",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "DateModified",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_Color"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TableJson')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "source",
+						"type": "nvarchar"
+					},
+					{
+						"name": "staging",
+						"type": "nvarchar"
+					},
+					{
+						"name": "target",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tFixedFlowInput"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgBrand')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "varchar"
+					},
+					{
+						"name": "originated",
+						"type": "varchar"
+					},
+					{
+						"name": "description",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stg_Brand"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgColor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "varchar"
+					},
+					{
+						"name": "originated",
+						"type": "varchar"
+					},
+					{
+						"name": "universal_code",
+						"type": "varchar"
+					},
+					{
+						"name": "color_name",
+						"type": "varchar"
+					},
+					{
+						"name": "year",
+						"type": "decimal",
+						"precision": 4,
+						"scale": 0
+					},
+					{
+						"name": "version",
+						"type": "decimal",
+						"precision": 4,
+						"scale": 0
+					},
+					{
+						"name": "version_date",
+						"type": "date"
+					},
+					{
+						"name": "brand",
+						"type": "varchar"
+					},
+					{
+						"name": "effect",
+						"type": "varchar"
+					},
+					{
+						"name": "density",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 4
+					},
+					{
+						"name": "last_update",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stg_Color"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgVariant')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 0
+					},
+					{
+						"name": "originated",
+						"type": "varchar"
+					},
+					{
+						"name": "color",
+						"type": "varchar"
+					},
+					{
+						"name": "color_variant",
+						"type": "varchar"
+					},
+					{
+						"name": "description",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stg_Variant"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremDatabase')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('OnPremDatabase_properties_typeProperties_server')]",
+					"database": "[parameters('OnPremDatabase_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('OnPremDatabase_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('OnPremDatabase_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "OnPremSQLData",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/OnPremSQLData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/1_ProcessBrazilDataToICRIS_Brand_DF')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "stgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "stgBrand",
+							"description": "Import data from Brazil stgBrand"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "ICRISstgBrand"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ICRISstgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "InsertSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "Update"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "CheckingBrandCodeISNULLorNOT"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as string,",
+						"          originated as string,",
+						"          description as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgBrand",
+						"source(output(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ICRISstgBrand",
+						"stgBrand, ICRISstgBrand lookup(stgBrand@id == Code,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup1",
+						"lookup1 split(isNull(Code)|| trim(Code) == '',",
+						"     disjoint: false) ~> CheckingBrandCodeISNULLorNOT@(row2CodeIsNull, row2CodeIsNotNull)",
+						"CheckingBrandCodeISNULLorNOT@row2CodeIsNull derive(code = '0',",
+						"          deleted = '0') ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Code = CheckingBrandCodeISNULLorNOT@row2CodeIsNull@id,",
+						"          Name = description,",
+						"          Deleted = derivedColumn1@deleted,",
+						"          DateModifiedTalend,",
+						"          Id = derivedColumn1@code",
+						"     )) ~> InsertSink",
+						"CheckingBrandCodeISNULLorNOT@row2CodeIsNotNull sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> Update"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/stgBrand')]",
+				"[concat(variables('factoryId'), '/datasets/ICRISstgBrand')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "stgColor",
+								"type": "DatasetReference"
+							},
+							"name": "stgColor",
+							"description": "Dataset for Brazil Color"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgColor",
+								"type": "DatasetReference"
+							},
+							"name": "ICRISstgColor",
+							"description": "Dataset for ICRISstgColor"
+						},
+						{
+							"dataset": {
+								"referenceName": "TableJson",
+								"type": "DatasetReference"
+							},
+							"name": "JsonFile"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgVariant",
+								"type": "DatasetReference"
+							},
+							"name": "stgVariant",
+							"description": "Data from stgVariant"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ICRISstgColor",
+								"type": "DatasetReference"
+							},
+							"name": "InsertSinkColor"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgColor",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateSinkColor"
+						}
+					],
+					"transformations": [
+						{
+							"name": "CheckingIFNULL"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "SelectingAll"
+						},
+						{
+							"name": "JoinWithJSON"
+						},
+						{
+							"name": "derivedHardCodedColums"
+						},
+						{
+							"name": "join2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as string,",
+						"          originated as string,",
+						"          universal_code as string,",
+						"          color_name as string,",
+						"          year as decimal(4,0),",
+						"          version as decimal(4,0),",
+						"          version_date as date,",
+						"          brand as string,",
+						"          effect as string,",
+						"          density as decimal(8,4),",
+						"          last_update as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgColor",
+						"source(output(",
+						"          Id as integer,",
+						"          StagingId as string,",
+						"          Code as string,",
+						"          BrandCode as string,",
+						"          VariantCode as string,",
+						"          Year as string,",
+						"          Name as string,",
+						"          Use as boolean,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Effect as integer,",
+						"          Deleted as boolean,",
+						"          DateCreated as timestamp,",
+						"          DateModified as timestamp,",
+						"          DateModifiedTalend as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ICRISstgColor",
+						"source(output(",
+						"          source as string,",
+						"          staging as string,",
+						"          target as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> JsonFile",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          color as string,",
+						"          color_variant as string,",
+						"          description as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgVariant",
+						"JoinWithJSON split(isNull(StagingId) || trim(StagingId) == '' && !isNull(SelectingAll@effect),",
+						"     disjoint: true) ~> CheckingIFNULL@(StagingIdISNULL, StagingIdISnotNULL)",
+						"stgColor, ICRISstgColor join(stgColor@id == StagingId,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join2 select(mapColumn(",
+						"          id = stgColor@id,",
+						"          originated = stgColor@originated,",
+						"          universal_code,",
+						"          color_name,",
+						"          year = stgColor@year,",
+						"          version,",
+						"          version_date,",
+						"          brand,",
+						"          effect = stgColor@effect,",
+						"          density,",
+						"          last_update,",
+						"          Id = ICRISstgColor@Id,",
+						"          StagingId,",
+						"          Code,",
+						"          BrandCode,",
+						"          VariantCode,",
+						"          Year = ICRISstgColor@Year,",
+						"          Name,",
+						"          Use,",
+						"          Red,",
+						"          Green,",
+						"          Blue,",
+						"          Effect = ICRISstgColor@Effect,",
+						"          Deleted,",
+						"          DateCreated,",
+						"          DateModified,",
+						"          DateModifiedTalend,",
+						"          id = stgVariant@id,",
+						"          originated = stgVariant@originated,",
+						"          color,",
+						"          color_variant,",
+						"          description",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectingAll",
+						"SelectingAll, JsonFile join(SelectingAll@effect == source,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinWithJSON",
+						"CheckingIFNULL@StagingIdISNULL derive(newid = '0',",
+						"          newred = '0',",
+						"          newblue = '0',",
+						"          newgreen = '0',",
+						"          newuse = isBoolean('true'),",
+						"          newdeleted = '0') ~> derivedHardCodedColums",
+						"join1, stgVariant join(stgColor@originated == stgVariant@originated,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"derivedHardCodedColums sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as integer,",
+						"          StagingId as string,",
+						"          Code as string,",
+						"          BrandCode as string,",
+						"          VariantCode as string,",
+						"          Year as string,",
+						"          Name as string,",
+						"          Use as boolean,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Effect as integer,",
+						"          Deleted as boolean,",
+						"          DateCreated as timestamp,",
+						"          DateModified as timestamp,",
+						"          DateModifiedTalend as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Id = newid,",
+						"          StagingId = CheckingIFNULL@StagingIdISNULL@id,",
+						"          Code = universal_code,",
+						"          BrandCode = brand,",
+						"          VariantCode = description,",
+						"          Year = CheckingIFNULL@StagingIdISNULL@year,",
+						"          Name = color_name,",
+						"          Use = newuse,",
+						"          Red = newred,",
+						"          Green = newgreen,",
+						"          Blue = newblue,",
+						"          Effect = target,",
+						"          Deleted = newdeleted,",
+						"          DateCreated = version_date,",
+						"          DateModified = version_date,",
+						"          DateModifiedTalend = last_update",
+						"     )) ~> InsertSinkColor",
+						"CheckingIFNULL@StagingIdISnotNULL sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as integer,",
+						"          StagingId as string,",
+						"          Code as string,",
+						"          BrandCode as string,",
+						"          VariantCode as string,",
+						"          Year as string,",
+						"          Name as string,",
+						"          Use as boolean,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Effect as integer,",
+						"          Deleted as boolean,",
+						"          DateCreated as timestamp,",
+						"          DateModified as timestamp,",
+						"          DateModifiedTalend as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          StagingId = CheckingIFNULL@StagingIdISnotNULL@id,",
+						"          Code = universal_code,",
+						"          BrandCode = brand,",
+						"          VariantCode = description,",
+						"          Year = CheckingIFNULL@StagingIdISnotNULL@Year,",
+						"          Name = color_name,",
+						"          Use,",
+						"          Effect = target,",
+						"          Deleted,",
+						"          DateModified = version_date,",
+						"          DateModifiedTalend = last_update",
+						"     )) ~> UpdateSinkColor"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/stgColor')]",
+				"[concat(variables('factoryId'), '/datasets/ICRISstgColor')]",
+				"[concat(variables('factoryId'), '/datasets/TableJson')]",
+				"[concat(variables('factoryId'), '/datasets/stgVariant')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgBrand')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "PL1_DF",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "1_ProcessBrazilDataToICRIS_Brand_DF",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgBrand": {},
+									"ICRISstgBrand": {},
+									"InsertSink": {},
+									"Update": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"COUNT": {
+						"type": "Integer"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-09-17T11:09:03Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/1_ProcessBrazilDataToICRIS_Brand_DF')]"
+			]
+		}
+	]
+}

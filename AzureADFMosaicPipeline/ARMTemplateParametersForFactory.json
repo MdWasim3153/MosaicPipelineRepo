@@ -1,0 +1,51 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "AzureADFMosaicPipeline"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
+		"AzureBlobStorage2_connectionString": {
+			"value": ""
+		},
+		"AzureSqlDatabase1_password": {
+			"value": ""
+		},
+		"BRSpectro_password": {
+			"value": ""
+		},
+		"OnPremDatabase_password": {
+			"value": ""
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"value": "brazildb.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"value": "BrazilDB"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"value": "user"
+		},
+		"BRSpectro_properties_typeProperties_server": {
+			"value": "brazildb.database.windows.net"
+		},
+		"BRSpectro_properties_typeProperties_database": {
+			"value": "BrazilDB"
+		},
+		"BRSpectro_properties_typeProperties_userName": {
+			"value": "user"
+		},
+		"OnPremDatabase_properties_typeProperties_server": {
+			"value": "PF4WB9DF\\SQLEXP2019"
+		},
+		"OnPremDatabase_properties_typeProperties_database": {
+			"value": "AdventureWorks2019"
+		},
+		"OnPremDatabase_properties_typeProperties_userName": {
+			"value": "sa"
+		}
+	}
+}
