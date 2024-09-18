@@ -1,9 +1,9 @@
 {
-	"name": "1_ICRISstgBrand",
+	"name": "2_ICRISstgColor",
 	"properties": {
 		"activities": [
 			{
-				"name": "PL1_DF",
+				"name": "2_ProcessBrazilDataToICRIS_Color",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "1_ProcessBrazilDataToICRIS_Brand_DF",
+						"referenceName": "2_ProcessBrazilDataToICRIS_Color",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -27,13 +27,6 @@
 				}
 			}
 		],
-		"variables": {
-			"COUNT": {
-				"type": "Integer"
-			}
-		},
-		"annotations": [],
-		"lastPublishTime": "2024-09-17T11:09:03Z"
-	},
-	"type": "Microsoft.DataFactory/factories/pipelines"
+		"annotations": []
+	}
 }
