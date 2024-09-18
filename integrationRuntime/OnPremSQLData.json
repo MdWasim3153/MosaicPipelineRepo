@@ -1,0 +1,7 @@
+{
+	"name": "OnPremSQLData",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Database stored on my local machine"
+	}
+}

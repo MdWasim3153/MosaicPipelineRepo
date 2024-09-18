@@ -1,0 +1,90 @@
+{
+	"name": "ICRISstgColor",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StagingId",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BrandCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VariantCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Year",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Use",
+				"type": "bit"
+			},
+			{
+				"name": "Red",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Green",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Blue",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Effect",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "Deleted",
+				"type": "bit"
+			},
+			{
+				"name": "DateCreated",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "DateModified",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "DateModifiedTalend",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ICRIS_stg_Color"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

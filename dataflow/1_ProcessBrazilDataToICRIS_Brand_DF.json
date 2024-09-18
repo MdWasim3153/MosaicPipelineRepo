@@ -1,0 +1,123 @@
+{
+	"name": "1_ProcessBrazilDataToICRIS_Brand_DF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "stgBrand",
+						"type": "DatasetReference"
+					},
+					"name": "stgBrand",
+					"description": "Import data from Brazil stgBrand"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgBrand",
+						"type": "DatasetReference"
+					},
+					"name": "ICRISstgBrand"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ICRISstgBrand",
+						"type": "DatasetReference"
+					},
+					"name": "InsertSink"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgBrand",
+						"type": "DatasetReference"
+					},
+					"name": "Update"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "CheckingBrandCodeISNULLorNOT"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as string,",
+				"          originated as string,",
+				"          description as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgBrand",
+				"source(output(",
+				"          Code as string,",
+				"          Name as string,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp,",
+				"          Id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ICRISstgBrand",
+				"stgBrand, ICRISstgBrand lookup(stgBrand@id == Code,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 split(isNull(Code)|| trim(Code) == '',",
+				"     disjoint: false) ~> CheckingBrandCodeISNULLorNOT@(row2CodeIsNull, row2CodeIsNotNull)",
+				"CheckingBrandCodeISNULLorNOT@row2CodeIsNull derive(code = '0',",
+				"          deleted = '0') ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Code as string,",
+				"          Name as string,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp,",
+				"          Id as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Code = CheckingBrandCodeISNULLorNOT@row2CodeIsNull@id,",
+				"          Name = description,",
+				"          Deleted = derivedColumn1@deleted,",
+				"          DateModifiedTalend,",
+				"          Id = derivedColumn1@code",
+				"     )) ~> InsertSink",
+				"CheckingBrandCodeISNULLorNOT@row2CodeIsNotNull sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Code as string,",
+				"          Name as string,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp,",
+				"          Id as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> Update"
+			]
+		}
+	}
+}

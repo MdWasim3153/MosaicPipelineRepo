@@ -1,0 +1,9 @@
+{
+	"name": "AzureADFMosaicPipeline",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "6104561e-86db-4ce5-8221-4fcc217dee33",
+		"tenantId": "b1e877a7-62c0-42d4-860a-249f0963366e"
+	}
+}

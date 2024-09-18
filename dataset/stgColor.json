@@ -1,0 +1,68 @@
+{
+	"name": "stgColor",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "varchar"
+			},
+			{
+				"name": "originated",
+				"type": "varchar"
+			},
+			{
+				"name": "universal_code",
+				"type": "varchar"
+			},
+			{
+				"name": "color_name",
+				"type": "varchar"
+			},
+			{
+				"name": "year",
+				"type": "decimal",
+				"precision": 4,
+				"scale": 0
+			},
+			{
+				"name": "version",
+				"type": "decimal",
+				"precision": 4,
+				"scale": 0
+			},
+			{
+				"name": "version_date",
+				"type": "date"
+			},
+			{
+				"name": "brand",
+				"type": "varchar"
+			},
+			{
+				"name": "effect",
+				"type": "varchar"
+			},
+			{
+				"name": "density",
+				"type": "decimal",
+				"precision": 8,
+				"scale": 4
+			},
+			{
+				"name": "last_update",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stg_Color"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

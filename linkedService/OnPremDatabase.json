@@ -1,0 +1,21 @@
+{
+	"name": "OnPremDatabase",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "PF4WB9DF\\SQLEXP2019",
+			"database": "AdventureWorks2019",
+			"encrypt": "optional",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4ODk4ZGRiOS05ZjFhLTQxODAtYWE4YS1iOGE3OTE5NDM5MDIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "OnPremSQLData",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

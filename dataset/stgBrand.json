@@ -1,0 +1,30 @@
+{
+	"name": "stgBrand",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "varchar"
+			},
+			{
+				"name": "originated",
+				"type": "varchar"
+			},
+			{
+				"name": "description",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stg_Brand"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

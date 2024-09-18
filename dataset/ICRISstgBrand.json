@@ -1,0 +1,40 @@
+{
+	"name": "ICRISstgBrand",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Deleted",
+				"type": "bit"
+			},
+			{
+				"name": "DateModifiedTalend",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ICRIS_stg_Brand"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
