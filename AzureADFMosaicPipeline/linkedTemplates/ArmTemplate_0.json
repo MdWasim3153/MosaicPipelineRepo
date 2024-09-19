@@ -150,6 +150,70 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ICRISStgIngredient')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "FormulaId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StagingId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FormulaTalendId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Line",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "ProductCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Amount",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "TalendId",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_Ingredient"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ICRISstgBrand')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -281,6 +345,74 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "ICRIS_stg_Color"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgFormula')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TalendId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ColorId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StagingId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "QualityId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "UndercoatCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateCreated",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "DateModified",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_Formula"
 				}
 			},
 			"dependsOn": [
@@ -422,6 +554,193 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "stg_Color"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgFormula')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 0
+					},
+					{
+						"name": "originated",
+						"type": "varchar"
+					},
+					{
+						"name": "color",
+						"type": "varchar"
+					},
+					{
+						"name": "line",
+						"type": "varchar"
+					},
+					{
+						"name": "subline",
+						"type": "varchar"
+					},
+					{
+						"name": "undercoat",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stg_Formula"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgIngredient')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 0
+					},
+					{
+						"name": "originated",
+						"type": "varchar"
+					},
+					{
+						"name": "product",
+						"type": "varchar"
+					},
+					{
+						"name": "amount",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 4
+					},
+					{
+						"name": "formula",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 0
+					},
+					{
+						"name": "ordination",
+						"type": "decimal",
+						"precision": 2,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stg_Ingredient"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgIngredientTempData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "stgIngredientTempData",
+						"folderPath": "TEST",
+						"container": "brdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "varchar"
+					},
+					{
+						"name": "display_id",
+						"type": "varchar"
+					},
+					{
+						"name": "originated",
+						"type": "varchar"
+					},
+					{
+						"name": "product_name",
+						"type": "varchar"
+					},
+					{
+						"name": "type",
+						"type": "decimal",
+						"precision": 2,
+						"scale": 0
+					},
+					{
+						"name": "used_in_formula",
+						"type": "decimal",
+						"precision": 1,
+						"scale": 0
+					},
+					{
+						"name": "density",
+						"type": "decimal",
+						"precision": 8,
+						"scale": 4
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stg_Product"
 				}
 			},
 			"dependsOn": [
@@ -630,7 +949,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color')]",
+			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -919,110 +1238,6 @@
 				"[concat(variables('factoryId'), '/datasets/ICRISstgColor')]",
 				"[concat(variables('factoryId'), '/datasets/TableJson')]",
 				"[concat(variables('factoryId'), '/datasets/stgVariant')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/1_ICRISstgBrand')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "PL1_DF",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "1_ProcessBrazilDataToICRIS_Brand_DF",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"stgBrand": {},
-									"ICRISstgBrand": {},
-									"InsertSink": {},
-									"Update": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"COUNT": {
-						"type": "Integer"
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2024-09-17T11:09:03Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/1_ProcessBrazilDataToICRIS_Brand_DF')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/2_ICRISstgColor')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "2_ProcessBrazilDataToICRIS_Color",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "2_ProcessBrazilDataToICRIS_Color",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"stgColor": {},
-									"ICRISstgColor": {},
-									"JsonFile": {},
-									"stgVariant": {},
-									"InsertSinkColor": {},
-									"UpdateSinkColor": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/2_ProcessBrazilDataToICRIS_Color')]"
 			]
 		}
 	]
