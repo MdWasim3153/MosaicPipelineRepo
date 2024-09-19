@@ -715,6 +715,35 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/stgIngredientUpdateData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "stgIngredientUpdateData",
+						"folderPath": "TEST",
+						"container": "brdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/stgProduct')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1544,6 +1573,20 @@
 							},
 							"name": "UpdateStgFormula",
 							"description": "updated stg formula"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredient",
+								"type": "DatasetReference"
+							},
+							"name": "DLstgIngredient"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgFormula",
+								"type": "DatasetReference"
+							},
+							"name": "DLstgFormula"
 						}
 					],
 					"sinks": [
@@ -1560,6 +1603,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "UpdatedICRISIngredients"
+						},
+						{
+							"dataset": {
+								"referenceName": "DLstgIngredientoutput",
+								"type": "DatasetReference"
+							},
+							"name": "DLstgIngredientoutput"
 						}
 					],
 					"transformations": [
@@ -1624,10 +1674,40 @@
 							"name": "UpdateICRISstgIngredient"
 						},
 						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "ProductCodeISNOTNULL"
+						},
+						{
 							"name": "select8"
 						},
 						{
-							"name": "derivedColumn2"
+							"name": "joinStgFormula"
+						},
+						{
+							"name": "select9"
+						},
+						{
+							"name": "joinStgProduct"
+						},
+						{
+							"name": "select10"
+						},
+						{
+							"name": "joinStgColor"
+						},
+						{
+							"name": "select11"
+						},
+						{
+							"name": "DLICRISStgIng"
+						},
+						{
+							"name": "select12"
+						},
+						{
+							"name": "derivedColumn3"
 						}
 					],
 					"scriptLines": [
@@ -1740,6 +1820,30 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> UpdateStgFormula",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          product as string,",
+						"          amount as decimal(8,4),",
+						"          formula as decimal(8,0),",
+						"          ordination as decimal(2,0)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> DLstgIngredient",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          color as string,",
+						"          line as string,",
+						"          subline as string,",
+						"          undercoat as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> DLstgFormula",
 						"stgIngredient, stgFormula join(formula == stgFormula@id,",
 						"     joinType:'left',",
 						"     matchType:'exact',",
@@ -1985,30 +2089,139 @@
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> UpdateICRISstgIngredient",
-						"UpdateICRISstgIngredient select(mapColumn(",
+						"UpdateICRISstgIngredient derive(Deleted = '0') ~> derivedColumn2",
+						"derivedColumn2 filter(!isNull(ProductCode)) ~> ProductCodeISNOTNULL",
+						"ProductCodeISNOTNULL select(mapColumn(",
 						"          {TalendId(UICRISFR)},",
-						"          {Amount(UICRISING)} = Amount,",
-						"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend",
+						"          Amount,",
+						"          Deleted,",
+						"          DateModifiedTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select8",
-						"select8 derive(Deleted = '0') ~> derivedColumn2",
+						"DLstgIngredient, DLstgFormula join(formula == DLstgFormula@id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinStgFormula",
+						"joinStgFormula select(mapColumn(",
+						"          {id(DLING)} = DLstgIngredient@id,",
+						"          {originated(DLING)} = DLstgIngredient@originated,",
+						"          {product(DLING)} = product,",
+						"          {amount(DLING)} = amount,",
+						"          {formula(DLING)} = formula,",
+						"          {ordination(DLING)} = ordination,",
+						"          {id(DLFR)} = DLstgFormula@id,",
+						"          {originated(DLFR)} = DLstgFormula@originated,",
+						"          {color(DLFR)} = color,",
+						"          {line(DLFR)} = line,",
+						"          {subline(DLFR)} = subline,",
+						"          {undercoat(DLFR)} = undercoat",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select9",
+						"select9, stgProduct join({product(DLING)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinStgProduct",
+						"joinStgProduct select(mapColumn(",
+						"          {id(DLING)},",
+						"          {originated(DLING)},",
+						"          {product(DLING)},",
+						"          {amount(DLING)},",
+						"          {formula(DLING)},",
+						"          {ordination(DLING)},",
+						"          {id(DLFR)},",
+						"          {originated(DLFR)},",
+						"          {color(DLFR)},",
+						"          {line(DLFR)},",
+						"          {subline(DLFR)},",
+						"          {undercoat(DLFR)},",
+						"          {id(DLPR)} = id,",
+						"          {display_id(DLPR)} = display_id,",
+						"          {originated(DLPR)} = originated,",
+						"          {product_name(DLPR)} = product_name,",
+						"          {type(DLPR)} = type,",
+						"          {used_in_formula(DLPR)} = used_in_formula,",
+						"          {density(DLPR)} = density",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select10",
+						"select10, stgColor join({color(DLFR)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinStgColor",
+						"joinStgColor select(mapColumn(",
+						"          {id(DLING)},",
+						"          {originated(DLING)},",
+						"          {product(DLING)},",
+						"          {amount(DLING)},",
+						"          {formula(DLING)},",
+						"          {ordination(DLING)},",
+						"          {id(DLFR)},",
+						"          {originated(DLFR)},",
+						"          {color(DLFR)},",
+						"          {line(DLFR)},",
+						"          {subline(DLFR)},",
+						"          {undercoat(DLFR)},",
+						"          {id(DLPR)},",
+						"          {display_id(DLPR)},",
+						"          {originated(DLPR)},",
+						"          {product_name(DLPR)},",
+						"          {type(DLPR)},",
+						"          {used_in_formula(DLPR)},",
+						"          {density(DLPR)},",
+						"          {id(DLCLR)} = id,",
+						"          {originated(DLCLR)} = originated,",
+						"          {universal_code(DLCLR)} = universal_code,",
+						"          {color_name(DLCLR)} = color_name,",
+						"          {year(DLCLR)} = year,",
+						"          {version(DLCLR)} = version,",
+						"          {version_date(DLCLR)} = version_date,",
+						"          {brand(DLCLR)} = brand,",
+						"          {effect(DLCLR)} = effect,",
+						"          {density(DLCLR)} = density,",
+						"          {last_update(DLCLR)} = last_update",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select11",
+						"select11, ICRISStgIngredient join({color(DLFR)} == StagingId",
+						"     && {ordination(DLING)} == Line",
+						"     && {product(DLING)} == ProductCode,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> DLICRISStgIng",
+						"derivedColumn3 select(mapColumn(",
+						"          DateModifiedTalend,",
+						"          TalendId,",
+						"          Deleted",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select12",
+						"DLICRISStgIng derive(Deleted = '1') ~> derivedColumn3",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 1) ~> stgingredientdata",
-						"derivedColumn2 sink(allowSchemaDrift: true,",
+						"select8 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 2,",
 						"     mapColumn(",
 						"          {TalendId(UICRISFR)},",
-						"          {Amount(UICRISING)},",
-						"          {DateModifiedTalend(UICRISING)},",
+						"          {Amount(UICRISING)} = Amount,",
+						"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend,",
 						"          Deleted",
-						"     )) ~> UpdatedICRISIngredients"
+						"     )) ~> UpdatedICRISIngredients",
+						"select12 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> DLstgIngredientoutput"
 					]
 				}
 			},
@@ -2020,11 +2233,12 @@
 				"[concat(variables('factoryId'), '/datasets/ICRISstgFormula')]",
 				"[concat(variables('factoryId'), '/datasets/ICRISStgIngredient')]",
 				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]",
-				"[concat(variables('factoryId'), '/datasets/stgIngredientUpdateData')]"
+				"[concat(variables('factoryId'), '/datasets/stgIngredientUpdateData')]",
+				"[concat(variables('factoryId'), '/datasets/DLstgIngredientoutput')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/stgIngredientUpdateData')]",
+			"name": "[concat(parameters('factoryName'), '/DLstgIngredientoutput')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -2037,7 +2251,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "stgIngredientUpdateData",
+						"fileName": "DLstgIngredientoutput",
 						"folderPath": "TEST",
 						"container": "brdata"
 					},

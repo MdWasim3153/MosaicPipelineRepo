@@ -13,6 +13,132 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/1_ProcessBrazilDataToICRIS_Brand_DF')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "stgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "stgBrand",
+							"description": "Import data from Brazil stgBrand"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "ICRISstgBrand"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ICRISstgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "InsertSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgBrand",
+								"type": "DatasetReference"
+							},
+							"name": "Update"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "CheckingBrandCodeISNULLorNOT"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as string,",
+						"          originated as string,",
+						"          description as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgBrand",
+						"source(output(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ICRISstgBrand",
+						"stgBrand, ICRISstgBrand lookup(stgBrand@id == Code,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup1",
+						"lookup1 split(isNull(Code)|| trim(Code) == '',",
+						"     disjoint: false) ~> CheckingBrandCodeISNULLorNOT@(row2CodeIsNull, row2CodeIsNotNull)",
+						"CheckingBrandCodeISNULLorNOT@row2CodeIsNull derive(code = '0',",
+						"          deleted = '0') ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Code = CheckingBrandCodeISNULLorNOT@row2CodeIsNull@id,",
+						"          Name = description,",
+						"          Deleted = derivedColumn1@deleted,",
+						"          DateModifiedTalend,",
+						"          Id = derivedColumn1@code",
+						"     )) ~> InsertSink",
+						"CheckingBrandCodeISNULLorNOT@row2CodeIsNotNull sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> Update"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -495,6 +621,20 @@
 							},
 							"name": "UpdateStgFormula",
 							"description": "updated stg formula"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredient",
+								"type": "DatasetReference"
+							},
+							"name": "DLstgIngredient"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgFormula",
+								"type": "DatasetReference"
+							},
+							"name": "DLstgFormula"
 						}
 					],
 					"sinks": [
@@ -511,6 +651,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "UpdatedICRISIngredients"
+						},
+						{
+							"dataset": {
+								"referenceName": "DLstgIngredientoutput",
+								"type": "DatasetReference"
+							},
+							"name": "DLstgIngredientoutput"
 						}
 					],
 					"transformations": [
@@ -575,10 +722,40 @@
 							"name": "UpdateICRISstgIngredient"
 						},
 						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "ProductCodeISNOTNULL"
+						},
+						{
 							"name": "select8"
 						},
 						{
-							"name": "derivedColumn2"
+							"name": "joinStgFormula"
+						},
+						{
+							"name": "select9"
+						},
+						{
+							"name": "joinStgProduct"
+						},
+						{
+							"name": "select10"
+						},
+						{
+							"name": "joinStgColor"
+						},
+						{
+							"name": "select11"
+						},
+						{
+							"name": "DLICRISStgIng"
+						},
+						{
+							"name": "select12"
+						},
+						{
+							"name": "derivedColumn3"
 						}
 					],
 					"scriptLines": [
@@ -691,6 +868,30 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> UpdateStgFormula",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          product as string,",
+						"          amount as decimal(8,4),",
+						"          formula as decimal(8,0),",
+						"          ordination as decimal(2,0)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> DLstgIngredient",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          color as string,",
+						"          line as string,",
+						"          subline as string,",
+						"          undercoat as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> DLstgFormula",
 						"stgIngredient, stgFormula join(formula == stgFormula@id,",
 						"     joinType:'left',",
 						"     matchType:'exact',",
@@ -936,30 +1137,139 @@
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> UpdateICRISstgIngredient",
-						"UpdateICRISstgIngredient select(mapColumn(",
+						"UpdateICRISstgIngredient derive(Deleted = '0') ~> derivedColumn2",
+						"derivedColumn2 filter(!isNull(ProductCode)) ~> ProductCodeISNOTNULL",
+						"ProductCodeISNOTNULL select(mapColumn(",
 						"          {TalendId(UICRISFR)},",
-						"          {Amount(UICRISING)} = Amount,",
-						"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend",
+						"          Amount,",
+						"          Deleted,",
+						"          DateModifiedTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select8",
-						"select8 derive(Deleted = '0') ~> derivedColumn2",
+						"DLstgIngredient, DLstgFormula join(formula == DLstgFormula@id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinStgFormula",
+						"joinStgFormula select(mapColumn(",
+						"          {id(DLING)} = DLstgIngredient@id,",
+						"          {originated(DLING)} = DLstgIngredient@originated,",
+						"          {product(DLING)} = product,",
+						"          {amount(DLING)} = amount,",
+						"          {formula(DLING)} = formula,",
+						"          {ordination(DLING)} = ordination,",
+						"          {id(DLFR)} = DLstgFormula@id,",
+						"          {originated(DLFR)} = DLstgFormula@originated,",
+						"          {color(DLFR)} = color,",
+						"          {line(DLFR)} = line,",
+						"          {subline(DLFR)} = subline,",
+						"          {undercoat(DLFR)} = undercoat",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select9",
+						"select9, stgProduct join({product(DLING)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinStgProduct",
+						"joinStgProduct select(mapColumn(",
+						"          {id(DLING)},",
+						"          {originated(DLING)},",
+						"          {product(DLING)},",
+						"          {amount(DLING)},",
+						"          {formula(DLING)},",
+						"          {ordination(DLING)},",
+						"          {id(DLFR)},",
+						"          {originated(DLFR)},",
+						"          {color(DLFR)},",
+						"          {line(DLFR)},",
+						"          {subline(DLFR)},",
+						"          {undercoat(DLFR)},",
+						"          {id(DLPR)} = id,",
+						"          {display_id(DLPR)} = display_id,",
+						"          {originated(DLPR)} = originated,",
+						"          {product_name(DLPR)} = product_name,",
+						"          {type(DLPR)} = type,",
+						"          {used_in_formula(DLPR)} = used_in_formula,",
+						"          {density(DLPR)} = density",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select10",
+						"select10, stgColor join({color(DLFR)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinStgColor",
+						"joinStgColor select(mapColumn(",
+						"          {id(DLING)},",
+						"          {originated(DLING)},",
+						"          {product(DLING)},",
+						"          {amount(DLING)},",
+						"          {formula(DLING)},",
+						"          {ordination(DLING)},",
+						"          {id(DLFR)},",
+						"          {originated(DLFR)},",
+						"          {color(DLFR)},",
+						"          {line(DLFR)},",
+						"          {subline(DLFR)},",
+						"          {undercoat(DLFR)},",
+						"          {id(DLPR)},",
+						"          {display_id(DLPR)},",
+						"          {originated(DLPR)},",
+						"          {product_name(DLPR)},",
+						"          {type(DLPR)},",
+						"          {used_in_formula(DLPR)},",
+						"          {density(DLPR)},",
+						"          {id(DLCLR)} = id,",
+						"          {originated(DLCLR)} = originated,",
+						"          {universal_code(DLCLR)} = universal_code,",
+						"          {color_name(DLCLR)} = color_name,",
+						"          {year(DLCLR)} = year,",
+						"          {version(DLCLR)} = version,",
+						"          {version_date(DLCLR)} = version_date,",
+						"          {brand(DLCLR)} = brand,",
+						"          {effect(DLCLR)} = effect,",
+						"          {density(DLCLR)} = density,",
+						"          {last_update(DLCLR)} = last_update",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select11",
+						"select11, ICRISStgIngredient join({color(DLFR)} == StagingId",
+						"     && {ordination(DLING)} == Line",
+						"     && {product(DLING)} == ProductCode,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> DLICRISStgIng",
+						"derivedColumn3 select(mapColumn(",
+						"          DateModifiedTalend,",
+						"          TalendId,",
+						"          Deleted",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select12",
+						"DLICRISStgIng derive(Deleted = '1') ~> derivedColumn3",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 1) ~> stgingredientdata",
-						"derivedColumn2 sink(allowSchemaDrift: true,",
+						"select8 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 2,",
 						"     mapColumn(",
 						"          {TalendId(UICRISFR)},",
-						"          {Amount(UICRISING)},",
-						"          {DateModifiedTalend(UICRISING)},",
+						"          {Amount(UICRISING)} = Amount,",
+						"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend,",
 						"          Deleted",
-						"     )) ~> UpdatedICRISIngredients"
+						"     )) ~> UpdatedICRISIngredients",
+						"select12 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> DLstgIngredientoutput"
 					]
 				}
 			},
@@ -1015,7 +1325,9 @@
 				"annotations": [],
 				"lastPublishTime": "2024-09-17T11:09:03Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/1_ProcessBrazilDataToICRIS_Brand_DF')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/2_ICRISstgColor')]",

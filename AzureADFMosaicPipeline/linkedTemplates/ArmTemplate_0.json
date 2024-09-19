@@ -692,6 +692,35 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/stgIngredientUpdateData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "stgIngredientUpdateData",
+						"folderPath": "TEST",
+						"container": "brdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/stgProduct')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -820,7 +849,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/stgIngredientUpdateData')]",
+			"name": "[concat(parameters('factoryName'), '/DLstgIngredientoutput')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -833,7 +862,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "stgIngredientUpdateData",
+						"fileName": "DLstgIngredientoutput",
 						"folderPath": "TEST",
 						"container": "brdata"
 					},
@@ -846,135 +875,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/1_ProcessBrazilDataToICRIS_Brand_DF')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "stgBrand",
-								"type": "DatasetReference"
-							},
-							"name": "stgBrand",
-							"description": "Import data from Brazil stgBrand"
-						},
-						{
-							"dataset": {
-								"referenceName": "ICRISstgBrand",
-								"type": "DatasetReference"
-							},
-							"name": "ICRISstgBrand"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ICRISstgBrand",
-								"type": "DatasetReference"
-							},
-							"name": "InsertSink"
-						},
-						{
-							"dataset": {
-								"referenceName": "ICRISstgBrand",
-								"type": "DatasetReference"
-							},
-							"name": "Update"
-						}
-					],
-					"transformations": [
-						{
-							"name": "lookup1"
-						},
-						{
-							"name": "CheckingBrandCodeISNULLorNOT"
-						},
-						{
-							"name": "derivedColumn1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          id as string,",
-						"          originated as string,",
-						"          description as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> stgBrand",
-						"source(output(",
-						"          Code as string,",
-						"          Name as string,",
-						"          Deleted as boolean,",
-						"          DateModifiedTalend as timestamp,",
-						"          Id as integer",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> ICRISstgBrand",
-						"stgBrand, ICRISstgBrand lookup(stgBrand@id == Code,",
-						"     multiple: false,",
-						"     pickup: 'any',",
-						"     broadcast: 'auto')~> lookup1",
-						"lookup1 split(isNull(Code)|| trim(Code) == '',",
-						"     disjoint: false) ~> CheckingBrandCodeISNULLorNOT@(row2CodeIsNull, row2CodeIsNotNull)",
-						"CheckingBrandCodeISNULLorNOT@row2CodeIsNull derive(code = '0',",
-						"          deleted = '0') ~> derivedColumn1",
-						"derivedColumn1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          Code as string,",
-						"          Name as string,",
-						"          Deleted as boolean,",
-						"          DateModifiedTalend as timestamp,",
-						"          Id as integer",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          Code = CheckingBrandCodeISNULLorNOT@row2CodeIsNull@id,",
-						"          Name = description,",
-						"          Deleted = derivedColumn1@deleted,",
-						"          DateModifiedTalend,",
-						"          Id = derivedColumn1@code",
-						"     )) ~> InsertSink",
-						"CheckingBrandCodeISNULLorNOT@row2CodeIsNotNull sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          Code as string,",
-						"          Name as string,",
-						"          Deleted as boolean,",
-						"          DateModifiedTalend as timestamp,",
-						"          Id as integer",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> Update"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/stgBrand')]",
-				"[concat(variables('factoryId'), '/datasets/ICRISstgBrand')]"
 			]
 		}
 	]
