@@ -1766,7 +1766,8 @@
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> stgingredientdata"
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1) ~> stgingredientdata"
 					]
 				}
 			},
