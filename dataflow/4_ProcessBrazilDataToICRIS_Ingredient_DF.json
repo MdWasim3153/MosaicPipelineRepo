@@ -141,10 +141,13 @@
 					"name": "UpdateICRISstgIngredient"
 				},
 				{
-					"name": "select8"
+					"name": "derivedColumn2"
 				},
 				{
-					"name": "derivedColumn2"
+					"name": "ProductCodeISNOTNULL"
+				},
+				{
+					"name": "select8"
 				}
 			],
 			"scriptLines": [
@@ -502,28 +505,30 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> UpdateICRISstgIngredient",
-				"UpdateICRISstgIngredient select(mapColumn(",
+				"UpdateICRISstgIngredient derive(Deleted = '0') ~> derivedColumn2",
+				"derivedColumn2 filter(!isNull(ProductCode) ) ~> ProductCodeISNOTNULL",
+				"ProductCodeISNOTNULL select(mapColumn(",
 				"          {TalendId(UICRISFR)},",
-				"          {Amount(UICRISING)} = Amount,",
-				"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend",
+				"          Amount,",
+				"          Deleted,",
+				"          DateModifiedTalend",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select8",
-				"select8 derive(Deleted = '0') ~> derivedColumn2",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1) ~> stgingredientdata",
-				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"select8 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 2,",
 				"     mapColumn(",
 				"          {TalendId(UICRISFR)},",
-				"          {Amount(UICRISING)},",
-				"          {DateModifiedTalend(UICRISING)},",
+				"          {Amount(UICRISING)} = Amount,",
+				"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend,",
 				"          Deleted",
 				"     )) ~> UpdatedICRISIngredients"
 			]
