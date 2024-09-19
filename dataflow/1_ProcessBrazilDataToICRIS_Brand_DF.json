@@ -18,6 +18,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "ICRISstgBrand"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgBrand",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateStgBrand"
 				}
 			],
 			"sinks": [
@@ -33,18 +40,42 @@
 						"referenceName": "ICRISstgBrand",
 						"type": "DatasetReference"
 					},
-					"name": "Update"
+					"name": "UpdateSink"
 				}
 			],
 			"transformations": [
 				{
-					"name": "lookup1"
-				},
-				{
-					"name": "CheckingBrandCodeISNULLorNOT"
-				},
-				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "NotNullValues"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "updatingStgBrand"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "select3"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "select4"
+				},
+				{
+					"name": "AlterRow1"
 				}
 			],
 			"scriptLines": [
@@ -68,15 +99,75 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISstgBrand",
-				"stgBrand, ICRISstgBrand lookup(stgBrand@id == Code,",
-				"     multiple: false,",
-				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookup1",
-				"lookup1 split(isNull(Code)|| trim(Code) == '',",
-				"     disjoint: false) ~> CheckingBrandCodeISNULLorNOT@(row2CodeIsNull, row2CodeIsNotNull)",
-				"CheckingBrandCodeISNULLorNOT@row2CodeIsNull derive(code = '0',",
-				"          deleted = '0') ~> derivedColumn1",
-				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"source(output(",
+				"          id as string,",
+				"          originated as string,",
+				"          description as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> UpdateStgBrand",
+				"filter1 derive(newId = '0',",
+				"          newDeleted = '0',",
+				"          changedModifiedDate = currentUTC('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn1",
+				"select2 filter(isNull({Code(INICRISBR)})) ~> filter1",
+				"derivedColumn1 select(mapColumn(",
+				"          {id(INBR)},",
+				"          {description(INBR)},",
+				"          newId,",
+				"          newDeleted,",
+				"          changedModifiedDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> NotNullValues",
+				"join1 select(mapColumn(",
+				"          {id(INBR)} = stgBrand@id,",
+				"          {originated(INBR)} = originated,",
+				"          {description(INBR)} = description,",
+				"          {Code(INICRISBR)} = Code,",
+				"          {Name(INICRISBR)} = Name,",
+				"          {Deleted(INICRISBR)} = Deleted,",
+				"          {DateModifiedTalend(INICRISBR)} = DateModifiedTalend,",
+				"          {Id(INICRISBR)} = ICRISstgBrand@Id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"UpdateStgBrand, ICRISstgBrand join(UpdateStgBrand@id == Code,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> updatingStgBrand",
+				"stgBrand, ICRISstgBrand join(stgBrand@id == Code,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"updatingStgBrand select(mapColumn(",
+				"          {id(UPBR)} = UpdateStgBrand@id,",
+				"          {originated(UPBR)} = originated,",
+				"          {description(UPBR)} = description,",
+				"          {Code(UPICRISBR)} = Code,",
+				"          {Name(UPICRISBR)} = Name,",
+				"          {Deleted(UPICRISBR)} = Deleted,",
+				"          {DateModifiedTalend(UPICRISBR)} = DateModifiedTalend,",
+				"          {Id(UPICRISBR)} = ICRISstgBrand@Id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 filter(!isNull({Code(UPICRISBR)})) ~> filter2",
+				"filter2 derive(UPDeleted = '0',",
+				"          UPDatemodifiedTalend = currentUTC('{DateModifiedTalend(UPICRISBR)}')) ~> derivedColumn2",
+				"derivedColumn2 select(mapColumn(",
+				"          {description(UPBR)},",
+				"          {Code(UPICRISBR)},",
+				"          UPDeleted,",
+				"          UPDatemodifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
+				"select4 alterRow(updateIf(!isNull({Code(UPICRISBR)}))) ~> AlterRow1",
+				"NotNullValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          Code as string,",
@@ -94,13 +185,13 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          Code = CheckingBrandCodeISNULLorNOT@row2CodeIsNull@id,",
-				"          Name = description,",
-				"          Deleted = derivedColumn1@deleted,",
-				"          DateModifiedTalend,",
-				"          Id = derivedColumn1@code",
+				"          Code = {id(INBR)},",
+				"          Name = {description(INBR)},",
+				"          Deleted = newDeleted,",
+				"          DateModifiedTalend = changedModifiedDate,",
+				"          Id = newId",
 				"     )) ~> InsertSink",
-				"CheckingBrandCodeISNULLorNOT@row2CodeIsNotNull sink(allowSchemaDrift: true,",
+				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          Code as string,",
@@ -111,12 +202,12 @@
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
-				"     updateable:false,",
+				"     updateable:true,",
 				"     upsertable:false,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> Update"
+				"     errorHandlingOption: 'stopOnFirstError') ~> UpdateSink"
 			]
 		}
 	}
