@@ -709,7 +709,8 @@
 				"select12 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DLstgIngredientoutput"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> DLstgIngredientoutput"
 			]
 		}
 	}
