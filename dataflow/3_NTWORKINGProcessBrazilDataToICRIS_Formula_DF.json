@@ -26,7 +26,15 @@
 					"name": "stgFormula"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "stgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "JoinOnFormula"
@@ -95,7 +103,25 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
 				"join1 split(isNull(StagingId),",
-				"     disjoint: false) ~> split1@(stagingidISNULL, stagingidISnotNULL)"
+				"     disjoint: false) ~> split1@(stagingidISNULL, stagingidISnotNULL)",
+				"split1@stagingidISNULL sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          line as string,",
+				"          subline as string,",
+				"          undercoat as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
 			]
 		}
 	}
