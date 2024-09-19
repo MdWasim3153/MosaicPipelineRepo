@@ -9,7 +9,7 @@
 						"referenceName": "stgIngredient",
 						"type": "DatasetReference"
 					},
-					"name": "updateStgIngredient"
+					"name": "stgIngredient"
 				},
 				{
 					"dataset": {
@@ -89,9 +89,6 @@
 				},
 				{
 					"name": "derivedColumn1"
-				},
-				{
-					"name": "join1"
 				}
 			],
 			"scriptLines": [
@@ -106,7 +103,7 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> updateStgIngredient",
+				"     format: 'table') ~> stgIngredient",
 				"source(output(",
 				"          id as decimal(8,0),",
 				"          originated as string,",
@@ -180,7 +177,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISStgIngredient",
-				"updateStgIngredient, stgFormula join(formula == stgFormula@id,",
+				"stgIngredient, stgFormula join(formula == stgFormula@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -196,8 +193,8 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> AllJoinsandstgColor",
 				"JoiningIngredandFormula select(mapColumn(",
-				"          {ID(ING)} = updateStgIngredient@id,",
-				"          {originated(ING)} = updateStgIngredient@originated,",
+				"          {ID(ING)} = stgIngredient@id,",
+				"          {originated(ING)} = stgIngredient@originated,",
 				"          {product(ING)} = product,",
 				"          {amount(ING)} = amount,",
 				"          {formula(ING)} = formula,",
@@ -283,11 +280,6 @@
 				"     skipDuplicateMapOutputs: true) ~> select5",
 				"select5 derive(FormulaId = '0',",
 				"          Deleted = '0') ~> derivedColumn1",
-				"stgFormula join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
-				"     joinType:'inner',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
