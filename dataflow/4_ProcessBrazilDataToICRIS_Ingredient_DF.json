@@ -47,8 +47,35 @@
 					"name": "ICRISStgIngredient"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "stgingredientdata"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoiningIngredandFormula"
+				},
+				{
+					"name": "FirstjoinandProduct"
+				},
+				{
+					"name": "AllJoinsandstgColor"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "select3"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          id as decimal(8,0),",
@@ -134,7 +161,73 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> ICRISStgIngredient"
+				"     format: 'table') ~> ICRISStgIngredient",
+				"stgIngredient, stgFormula join(formula == stgFormula@id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoiningIngredandFormula",
+				"select1, stgProduct join({product(ING)} == id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> FirstjoinandProduct",
+				"select2, stgColor join({color(FR)} == id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> AllJoinsandstgColor",
+				"JoiningIngredandFormula select(mapColumn(",
+				"          {ID(ING)} = stgIngredient@id,",
+				"          {originated(ING)} = stgIngredient@originated,",
+				"          {product(ING)} = product,",
+				"          {amount(ING)} = amount,",
+				"          {formula(ING)} = formula,",
+				"          {ordination(ING)} = ordination,",
+				"          {id(FR)} = stgFormula@id,",
+				"          {originated(FR)} = stgFormula@originated,",
+				"          {color(FR)} = color,",
+				"          {line(FR)} = line,",
+				"          {subline(FR)} = subline,",
+				"          {undercoat(FR)} = undercoat",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"FirstjoinandProduct select(mapColumn(",
+				"          {ID(ING)},",
+				"          {originated(ING)},",
+				"          {product(ING)},",
+				"          {amount(ING)},",
+				"          {formula(ING)},",
+				"          {ordination(ING)},",
+				"          {id(FR)},",
+				"          {color(FR)},",
+				"          {line(FR)},",
+				"          {subline(FR)},",
+				"          {undercoat(FR)},",
+				"          {id(PR)} = id,",
+				"          {display_id(PR)} = display_id,",
+				"          {originated(PR)} = originated,",
+				"          {product_name(PR)} = product_name,",
+				"          {type(PR)} = type,",
+				"          {used_in_formula(PR)} = used_in_formula,",
+				"          {density(PR)} = density",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"AllJoinsandstgColor select(mapColumn(",
+				"          {product(ING)},",
+				"          {amount(ING)},",
+				"          {ordination(ING)},",
+				"          {color(FR)},",
+				"          {last_update(CLR)} = last_update",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> stgingredientdata"
 			]
 		}
 	}
