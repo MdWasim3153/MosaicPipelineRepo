@@ -74,6 +74,21 @@
 				},
 				{
 					"name": "select3"
+				},
+				{
+					"name": "joinICRISStgFormula"
+				},
+				{
+					"name": "joinICRISStgIngredient"
+				},
+				{
+					"name": "select4"
+				},
+				{
+					"name": "select5"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -224,7 +239,48 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select3 sink(allowSchemaDrift: true,",
+				"select3, ICRISStgFormula join({color(FR)} == StagingId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinICRISStgFormula",
+				"select4, ICRISStgIngredient join({product(ING)} == ProductCode,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinICRISStgIngredient",
+				"joinICRISStgFormula select(mapColumn(",
+				"          {product(ING)},",
+				"          {amount(ING)},",
+				"          {ordination(ING)},",
+				"          {color(FR)},",
+				"          {last_update(CLR)},",
+				"          {Id(ICRISFR)} = Id,",
+				"          {TalendId(ICRISFR)} = TalendId,",
+				"          {ColorId(ICRISFR)} = ColorId,",
+				"          {StagingId(ICRISFR)} = StagingId,",
+				"          {QualityId(ICRISFR)} = QualityId,",
+				"          {UndercoatCode(ICRISFR)} = UndercoatCode,",
+				"          {Deleted(ICRISFR)} = Deleted,",
+				"          {DateCreated(ICRISFR)} = DateCreated,",
+				"          {DateModified(ICRISFR)} = DateModified,",
+				"          {DateModifiedTalend(ICRISFR)} = DateModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
+				"joinICRISStgIngredient select(mapColumn(",
+				"          {DateModifiedTalend(ICRISFR)},",
+				"          {StagingId(ICRISING)} = StagingId,",
+				"          {FormulaTalendId(ICRISING)} = FormulaTalendId,",
+				"          {Line(ICRISING)} = Line,",
+				"          {ProductCode(ICRISING)} = ProductCode,",
+				"          {Amount(ICRISING)} = Amount",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select5",
+				"select5 derive(FormulaId = '0',",
+				"          Deleted = '0') ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> stgingredientdata"
