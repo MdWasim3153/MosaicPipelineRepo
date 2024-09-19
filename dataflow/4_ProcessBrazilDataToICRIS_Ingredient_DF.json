@@ -45,6 +45,22 @@
 						"type": "DatasetReference"
 					},
 					"name": "ICRISStgIngredient"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredient",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateStgIngredient",
+					"description": "update query for UpdateStgIngredient"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateStgFormula",
+					"description": "updated stg formula"
 				}
 			],
 			"sinks": [
@@ -54,6 +70,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "stgingredientdata"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientUpdateData",
+						"type": "DatasetReference"
+					},
+					"name": "UpdatedICRISIngredients"
 				}
 			],
 			"transformations": [
@@ -89,6 +112,39 @@
 				},
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "SelectUpIngFr"
+				},
+				{
+					"name": "SelectingUpdatedPr"
+				},
+				{
+					"name": "select6"
+				},
+				{
+					"name": "UpdatedICRISstgFormula"
+				},
+				{
+					"name": "select7"
+				},
+				{
+					"name": "UpdateICRISstgIngredient"
+				},
+				{
+					"name": "select8"
+				},
+				{
+					"name": "derivedColumn2"
 				}
 			],
 			"scriptLines": [
@@ -177,6 +233,30 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISStgIngredient",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          product as string,",
+				"          amount as decimal(8,4),",
+				"          formula as decimal(8,0),",
+				"          ordination as decimal(2,0)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> UpdateStgIngredient",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          line as string,",
+				"          subline as string,",
+				"          undercoat as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> UpdateStgFormula",
 				"stgIngredient, stgFormula join(formula == stgFormula@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -280,11 +360,172 @@
 				"     skipDuplicateMapOutputs: true) ~> select5",
 				"select5 derive(FormulaId = '0',",
 				"          Deleted = '0') ~> derivedColumn1",
+				"UpdateStgIngredient, UpdateStgFormula join(formula == UpdateStgFormula@id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"SelectUpIngFr, stgProduct join({product(UING)} == id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"SelectingUpdatedPr, stgColor join({color(UFR)} == id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"join1 select(mapColumn(",
+				"          {id(UING)} = UpdateStgIngredient@id,",
+				"          {originated(UING)} = UpdateStgIngredient@originated,",
+				"          {product(UING)} = product,",
+				"          {amount(UING)} = amount,",
+				"          {formula(UING)} = formula,",
+				"          {ordination(UING)} = ordination,",
+				"          {id(UFR)} = UpdateStgFormula@id,",
+				"          {originated(UFR)} = UpdateStgFormula@originated,",
+				"          {color(UFR)} = color,",
+				"          {line(UFR)} = line,",
+				"          {subline(UFR)} = subline,",
+				"          {undercoat(UFR)} = undercoat",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectUpIngFr",
+				"join2 select(mapColumn(",
+				"          {id(UING)},",
+				"          {originated(UING)},",
+				"          {product(UING)},",
+				"          {amount(UING)},",
+				"          {formula(UING)},",
+				"          {ordination(UING)},",
+				"          {id(UFR)},",
+				"          {originated(UFR)},",
+				"          {color(UFR)},",
+				"          {line(UFR)},",
+				"          {subline(UFR)},",
+				"          {undercoat(UFR)},",
+				"          {id(UPR)} = id,",
+				"          {display_id(UPR)} = display_id,",
+				"          {originated(UPR)} = originated,",
+				"          {product_name(UPR)} = product_name,",
+				"          {type(UPR)} = type,",
+				"          {used_in_formula(UPR)} = used_in_formula,",
+				"          {density(UPR)} = density",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectingUpdatedPr",
+				"join3 select(mapColumn(",
+				"          {id(UING)},",
+				"          {originated(UING)},",
+				"          {product(UING)},",
+				"          {amount(UING)},",
+				"          {formula(UING)},",
+				"          {ordination(UING)},",
+				"          {id(UFR)},",
+				"          {originated(UFR)},",
+				"          {color(UFR)},",
+				"          {line(UFR)},",
+				"          {subline(UFR)},",
+				"          {undercoat(UFR)},",
+				"          {id(UPR)},",
+				"          {display_id(UPR)},",
+				"          {originated(UPR)},",
+				"          {product_name(UPR)},",
+				"          {type(UPR)},",
+				"          {used_in_formula(UPR)},",
+				"          {density(UPR)},",
+				"          {id(UCLR)} = id,",
+				"          {originated(UCLR)} = originated,",
+				"          {universal_code(UCLR)} = universal_code,",
+				"          {color_name(UCLR)} = color_name,",
+				"          {year(UCLR)} = year,",
+				"          {version(UCLR)} = version,",
+				"          {version_date(UCLR)} = version_date,",
+				"          {brand(UCLR)} = brand,",
+				"          {effect(UCLR)} = effect,",
+				"          {density(UCLR)} = density,",
+				"          {last_update(UCLR)} = last_update",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select6",
+				"select6, ICRISStgFormula join({color(UFR)} == StagingId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> UpdatedICRISstgFormula",
+				"UpdatedICRISstgFormula select(mapColumn(",
+				"          {id(UING)},",
+				"          {originated(UING)},",
+				"          {product(UING)},",
+				"          {amount(UING)},",
+				"          {formula(UING)},",
+				"          {ordination(UING)},",
+				"          {id(UFR)},",
+				"          {originated(UFR)},",
+				"          {color(UFR)},",
+				"          {line(UFR)},",
+				"          {subline(UFR)},",
+				"          {undercoat(UFR)},",
+				"          {id(UPR)},",
+				"          {display_id(UPR)},",
+				"          {originated(UPR)},",
+				"          {product_name(UPR)},",
+				"          {type(UPR)},",
+				"          {used_in_formula(UPR)},",
+				"          {density(UPR)},",
+				"          {id(UCLR)},",
+				"          {originated(UCLR)},",
+				"          {universal_code(UCLR)},",
+				"          {color_name(UCLR)},",
+				"          {year(UCLR)},",
+				"          {version(UCLR)},",
+				"          {version_date(UCLR)},",
+				"          {brand(UCLR)},",
+				"          {effect(UCLR)},",
+				"          {density(UCLR)},",
+				"          {last_update(UCLR)},",
+				"          {Id(UICRISFR)} = Id,",
+				"          {TalendId(UICRISFR)} = TalendId,",
+				"          {ColorId(UICRISFR)} = ColorId,",
+				"          {StagingId(UICRISFR)} = StagingId,",
+				"          {QualityId(UICRISFR)} = QualityId,",
+				"          {UndercoatCode(UICRISFR)} = UndercoatCode,",
+				"          {Deleted(UICRISFR)} = Deleted,",
+				"          {DateCreated(UICRISFR)} = DateCreated,",
+				"          {DateModified(UICRISFR)} = DateModified,",
+				"          {DateModifiedTalend(UICRISFR)} = DateModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select7",
+				"select7, ICRISStgIngredient join({product(UING)} == ProductCode,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> UpdateICRISstgIngredient",
+				"UpdateICRISstgIngredient select(mapColumn(",
+				"          {TalendId(UICRISFR)},",
+				"          {Amount(UICRISING)} = Amount,",
+				"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select8",
+				"select8 derive(Deleted = '0') ~> derivedColumn2",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1) ~> stgingredientdata"
+				"     saveOrder: 1) ~> stgingredientdata",
+				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     mapColumn(",
+				"          {TalendId(UICRISFR)},",
+				"          {Amount(UICRISING)},",
+				"          {DateModifiedTalend(UICRISING)},",
+				"          Deleted",
+				"     )) ~> UpdatedICRISIngredients"
 			]
 		}
 	}
