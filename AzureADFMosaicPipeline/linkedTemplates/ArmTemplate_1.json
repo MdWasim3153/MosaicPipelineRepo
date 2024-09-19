@@ -13,6 +13,293 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color_DF')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "stgColor",
+								"type": "DatasetReference"
+							},
+							"name": "stgColor",
+							"description": "Dataset for Brazil Color"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgColor",
+								"type": "DatasetReference"
+							},
+							"name": "ICRISstgColor",
+							"description": "Dataset for ICRISstgColor"
+						},
+						{
+							"dataset": {
+								"referenceName": "TableJson",
+								"type": "DatasetReference"
+							},
+							"name": "JsonFile"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgVariant",
+								"type": "DatasetReference"
+							},
+							"name": "stgVariant",
+							"description": "Data from stgVariant"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ICRISstgColor",
+								"type": "DatasetReference"
+							},
+							"name": "InsertSinkColor"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgColor",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateSinkColor"
+						}
+					],
+					"transformations": [
+						{
+							"name": "CheckingIFNULL"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "SelectingAll"
+						},
+						{
+							"name": "JoinWithJSON"
+						},
+						{
+							"name": "derivedHardCodedColums"
+						},
+						{
+							"name": "join2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as string,",
+						"          originated as string,",
+						"          universal_code as string,",
+						"          color_name as string,",
+						"          year as decimal(4,0),",
+						"          version as decimal(4,0),",
+						"          version_date as date,",
+						"          brand as string,",
+						"          effect as string,",
+						"          density as decimal(8,4),",
+						"          last_update as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgColor",
+						"source(output(",
+						"          Id as integer,",
+						"          StagingId as string,",
+						"          Code as string,",
+						"          BrandCode as string,",
+						"          VariantCode as string,",
+						"          Year as string,",
+						"          Name as string,",
+						"          Use as boolean,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Effect as integer,",
+						"          Deleted as boolean,",
+						"          DateCreated as timestamp,",
+						"          DateModified as timestamp,",
+						"          DateModifiedTalend as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ICRISstgColor",
+						"source(output(",
+						"          source as string,",
+						"          staging as string,",
+						"          target as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> JsonFile",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          color as string,",
+						"          color_variant as string,",
+						"          description as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgVariant",
+						"JoinWithJSON split(isNull(StagingId) || trim(StagingId) == '' && !isNull(SelectingAll@effect),",
+						"     disjoint: true) ~> CheckingIFNULL@(StagingIdISNULL, StagingIdISnotNULL)",
+						"stgColor, ICRISstgColor join(stgColor@id == StagingId,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join2 select(mapColumn(",
+						"          id = stgColor@id,",
+						"          originated = stgColor@originated,",
+						"          universal_code,",
+						"          color_name,",
+						"          year = stgColor@year,",
+						"          version,",
+						"          version_date,",
+						"          brand,",
+						"          effect = stgColor@effect,",
+						"          density,",
+						"          last_update,",
+						"          Id = ICRISstgColor@Id,",
+						"          StagingId,",
+						"          Code,",
+						"          BrandCode,",
+						"          VariantCode,",
+						"          Year = ICRISstgColor@Year,",
+						"          Name,",
+						"          Use,",
+						"          Red,",
+						"          Green,",
+						"          Blue,",
+						"          Effect = ICRISstgColor@Effect,",
+						"          Deleted,",
+						"          DateCreated,",
+						"          DateModified,",
+						"          DateModifiedTalend,",
+						"          id = stgVariant@id,",
+						"          originated = stgVariant@originated,",
+						"          color,",
+						"          color_variant,",
+						"          description",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectingAll",
+						"SelectingAll, JsonFile join(SelectingAll@effect == source,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinWithJSON",
+						"CheckingIFNULL@StagingIdISNULL derive(newid = '0',",
+						"          newred = '0',",
+						"          newblue = '0',",
+						"          newgreen = '0',",
+						"          newuse = isBoolean('true'),",
+						"          newdeleted = '0') ~> derivedHardCodedColums",
+						"join1, stgVariant join(stgColor@originated == stgVariant@originated,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"derivedHardCodedColums sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as integer,",
+						"          StagingId as string,",
+						"          Code as string,",
+						"          BrandCode as string,",
+						"          VariantCode as string,",
+						"          Year as string,",
+						"          Name as string,",
+						"          Use as boolean,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Effect as integer,",
+						"          Deleted as boolean,",
+						"          DateCreated as timestamp,",
+						"          DateModified as timestamp,",
+						"          DateModifiedTalend as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Id = newid,",
+						"          StagingId = CheckingIFNULL@StagingIdISNULL@id,",
+						"          Code = universal_code,",
+						"          BrandCode = brand,",
+						"          VariantCode = description,",
+						"          Year = CheckingIFNULL@StagingIdISNULL@year,",
+						"          Name = color_name,",
+						"          Use = newuse,",
+						"          Red = newred,",
+						"          Green = newgreen,",
+						"          Blue = newblue,",
+						"          Effect = target,",
+						"          Deleted = newdeleted,",
+						"          DateCreated = version_date,",
+						"          DateModified = version_date,",
+						"          DateModifiedTalend = last_update",
+						"     )) ~> InsertSinkColor",
+						"CheckingIFNULL@StagingIdISnotNULL sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as integer,",
+						"          StagingId as string,",
+						"          Code as string,",
+						"          BrandCode as string,",
+						"          VariantCode as string,",
+						"          Year as string,",
+						"          Name as string,",
+						"          Use as boolean,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Effect as integer,",
+						"          Deleted as boolean,",
+						"          DateCreated as timestamp,",
+						"          DateModified as timestamp,",
+						"          DateModifiedTalend as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          StagingId = CheckingIFNULL@StagingIdISnotNULL@id,",
+						"          Code = universal_code,",
+						"          BrandCode = brand,",
+						"          VariantCode = description,",
+						"          Year = CheckingIFNULL@StagingIdISnotNULL@Year,",
+						"          Name = color_name,",
+						"          Use,",
+						"          Effect = target,",
+						"          Deleted,",
+						"          DateModified = version_date,",
+						"          DateModifiedTalend = last_update",
+						"     )) ~> UpdateSinkColor"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/3_NTWORKINGProcessBrazilDataToICRIS_Formula_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -192,6 +479,22 @@
 								"type": "DatasetReference"
 							},
 							"name": "ICRISStgIngredient"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredient",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateStgIngredient",
+							"description": "update query for UpdateStgIngredient"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgFormula",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateStgFormula",
+							"description": "updated stg formula"
 						}
 					],
 					"sinks": [
@@ -201,6 +504,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "stgingredientdata"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredientUpdateData",
+								"type": "DatasetReference"
+							},
+							"name": "UpdatedICRISIngredients"
 						}
 					],
 					"transformations": [
@@ -236,6 +546,39 @@
 						},
 						{
 							"name": "derivedColumn1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "join3"
+						},
+						{
+							"name": "SelectUpIngFr"
+						},
+						{
+							"name": "SelectingUpdatedPr"
+						},
+						{
+							"name": "select6"
+						},
+						{
+							"name": "UpdatedICRISstgFormula"
+						},
+						{
+							"name": "select7"
+						},
+						{
+							"name": "UpdateICRISstgIngredient"
+						},
+						{
+							"name": "select8"
+						},
+						{
+							"name": "derivedColumn2"
 						}
 					],
 					"scriptLines": [
@@ -324,6 +667,30 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> ICRISStgIngredient",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          product as string,",
+						"          amount as decimal(8,4),",
+						"          formula as decimal(8,0),",
+						"          ordination as decimal(2,0)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> UpdateStgIngredient",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          color as string,",
+						"          line as string,",
+						"          subline as string,",
+						"          undercoat as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> UpdateStgFormula",
 						"stgIngredient, stgFormula join(formula == stgFormula@id,",
 						"     joinType:'left',",
 						"     matchType:'exact',",
@@ -427,11 +794,172 @@
 						"     skipDuplicateMapOutputs: true) ~> select5",
 						"select5 derive(FormulaId = '0',",
 						"          Deleted = '0') ~> derivedColumn1",
+						"UpdateStgIngredient, UpdateStgFormula join(formula == UpdateStgFormula@id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"SelectUpIngFr, stgProduct join({product(UING)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"SelectingUpdatedPr, stgColor join({color(UFR)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join3",
+						"join1 select(mapColumn(",
+						"          {id(UING)} = UpdateStgIngredient@id,",
+						"          {originated(UING)} = UpdateStgIngredient@originated,",
+						"          {product(UING)} = product,",
+						"          {amount(UING)} = amount,",
+						"          {formula(UING)} = formula,",
+						"          {ordination(UING)} = ordination,",
+						"          {id(UFR)} = UpdateStgFormula@id,",
+						"          {originated(UFR)} = UpdateStgFormula@originated,",
+						"          {color(UFR)} = color,",
+						"          {line(UFR)} = line,",
+						"          {subline(UFR)} = subline,",
+						"          {undercoat(UFR)} = undercoat",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectUpIngFr",
+						"join2 select(mapColumn(",
+						"          {id(UING)},",
+						"          {originated(UING)},",
+						"          {product(UING)},",
+						"          {amount(UING)},",
+						"          {formula(UING)},",
+						"          {ordination(UING)},",
+						"          {id(UFR)},",
+						"          {originated(UFR)},",
+						"          {color(UFR)},",
+						"          {line(UFR)},",
+						"          {subline(UFR)},",
+						"          {undercoat(UFR)},",
+						"          {id(UPR)} = id,",
+						"          {display_id(UPR)} = display_id,",
+						"          {originated(UPR)} = originated,",
+						"          {product_name(UPR)} = product_name,",
+						"          {type(UPR)} = type,",
+						"          {used_in_formula(UPR)} = used_in_formula,",
+						"          {density(UPR)} = density",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectingUpdatedPr",
+						"join3 select(mapColumn(",
+						"          {id(UING)},",
+						"          {originated(UING)},",
+						"          {product(UING)},",
+						"          {amount(UING)},",
+						"          {formula(UING)},",
+						"          {ordination(UING)},",
+						"          {id(UFR)},",
+						"          {originated(UFR)},",
+						"          {color(UFR)},",
+						"          {line(UFR)},",
+						"          {subline(UFR)},",
+						"          {undercoat(UFR)},",
+						"          {id(UPR)},",
+						"          {display_id(UPR)},",
+						"          {originated(UPR)},",
+						"          {product_name(UPR)},",
+						"          {type(UPR)},",
+						"          {used_in_formula(UPR)},",
+						"          {density(UPR)},",
+						"          {id(UCLR)} = id,",
+						"          {originated(UCLR)} = originated,",
+						"          {universal_code(UCLR)} = universal_code,",
+						"          {color_name(UCLR)} = color_name,",
+						"          {year(UCLR)} = year,",
+						"          {version(UCLR)} = version,",
+						"          {version_date(UCLR)} = version_date,",
+						"          {brand(UCLR)} = brand,",
+						"          {effect(UCLR)} = effect,",
+						"          {density(UCLR)} = density,",
+						"          {last_update(UCLR)} = last_update",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select6",
+						"select6, ICRISStgFormula join({color(UFR)} == StagingId,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> UpdatedICRISstgFormula",
+						"UpdatedICRISstgFormula select(mapColumn(",
+						"          {id(UING)},",
+						"          {originated(UING)},",
+						"          {product(UING)},",
+						"          {amount(UING)},",
+						"          {formula(UING)},",
+						"          {ordination(UING)},",
+						"          {id(UFR)},",
+						"          {originated(UFR)},",
+						"          {color(UFR)},",
+						"          {line(UFR)},",
+						"          {subline(UFR)},",
+						"          {undercoat(UFR)},",
+						"          {id(UPR)},",
+						"          {display_id(UPR)},",
+						"          {originated(UPR)},",
+						"          {product_name(UPR)},",
+						"          {type(UPR)},",
+						"          {used_in_formula(UPR)},",
+						"          {density(UPR)},",
+						"          {id(UCLR)},",
+						"          {originated(UCLR)},",
+						"          {universal_code(UCLR)},",
+						"          {color_name(UCLR)},",
+						"          {year(UCLR)},",
+						"          {version(UCLR)},",
+						"          {version_date(UCLR)},",
+						"          {brand(UCLR)},",
+						"          {effect(UCLR)},",
+						"          {density(UCLR)},",
+						"          {last_update(UCLR)},",
+						"          {Id(UICRISFR)} = Id,",
+						"          {TalendId(UICRISFR)} = TalendId,",
+						"          {ColorId(UICRISFR)} = ColorId,",
+						"          {StagingId(UICRISFR)} = StagingId,",
+						"          {QualityId(UICRISFR)} = QualityId,",
+						"          {UndercoatCode(UICRISFR)} = UndercoatCode,",
+						"          {Deleted(UICRISFR)} = Deleted,",
+						"          {DateCreated(UICRISFR)} = DateCreated,",
+						"          {DateModified(UICRISFR)} = DateModified,",
+						"          {DateModifiedTalend(UICRISFR)} = DateModifiedTalend",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select7",
+						"select7, ICRISStgIngredient join({product(UING)} == ProductCode,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> UpdateICRISstgIngredient",
+						"UpdateICRISstgIngredient select(mapColumn(",
+						"          {TalendId(UICRISFR)},",
+						"          {Amount(UICRISING)} = Amount,",
+						"          {DateModifiedTalend(UICRISING)} = DateModifiedTalend",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select8",
+						"select8 derive(Deleted = '0') ~> derivedColumn2",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 1) ~> stgingredientdata"
+						"     saveOrder: 1) ~> stgingredientdata",
+						"derivedColumn2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2,",
+						"     mapColumn(",
+						"          {TalendId(UICRISFR)},",
+						"          {Amount(UICRISING)},",
+						"          {DateModifiedTalend(UICRISING)},",
+						"          Deleted",
+						"     )) ~> UpdatedICRISIngredients"
 					]
 				}
 			},
@@ -535,7 +1063,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/2_ProcessBrazilDataToICRIS_Color_DF')]"
+			]
 		}
 	]
 }
