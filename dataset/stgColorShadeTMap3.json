@@ -1,0 +1,16 @@
+{
+	"name": "stgColorShadeTMap3",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stgColorShadeTMap3"
+		}
+	}
+}

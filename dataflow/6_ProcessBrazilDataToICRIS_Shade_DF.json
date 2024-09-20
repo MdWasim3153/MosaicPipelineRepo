@@ -26,10 +26,22 @@
 					"name": "stgSpectro"
 				},
 				{
-					"name": "source1"
+					"dataset": {
+						"referenceName": "stgSpectro",
+						"type": "DatasetReference"
+					},
+					"name": "stgColorMergingTmap3"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "stgColorShadeTMap3",
+						"type": "DatasetReference"
+					},
+					"name": "stgColorShadeTMap3"
+				}
+			],
 			"transformations": [
 				{
 					"name": "joiningspectroandcolor"
@@ -50,10 +62,13 @@
 					"name": "select3"
 				},
 				{
-					"name": "filter1"
+					"name": "tMap3"
 				},
 				{
-					"name": "tMap3"
+					"name": "join1"
+				},
+				{
+					"name": "select4"
 				}
 			],
 			"scriptLines": [
@@ -96,8 +111,17 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> stgSpectro",
-				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> source1",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          angle as decimal(3,0),",
+				"          graininess as decimal(4,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgColorMergingTmap3",
 				"stgSpectro, stgColor join(color == stgColor@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -170,14 +194,47 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select3 filter(!isNull({color_variant(INVAR)}) && {angle(INSPC)}==15 && {angle(INSPC)}==75 && {angle(INSPC)}==75\r",
-				"\r",
-				") ~> filter1",
-				"filter1, stgColor join({id(INCLR)} == id,",
+				"select3, stgColor join({color(INVAR)} == id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> tMap3"
+				"     broadcast: 'auto')~> tMap3",
+				"stgColorMergingTmap3, stgColor join(color == stgColor@id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 select(mapColumn(",
+				"          {id(TMAPCLR)} = stgColorMergingTmap3@id,",
+				"          {originated(TMAPCLR)} = stgColorMergingTmap3@originated,",
+				"          {universal_code(TMAPCLR)} = universal_code,",
+				"          {color_name(TMAPCLR)} = color_name,",
+				"          {year(TMAPCLR)} = year,",
+				"          {version(TMAPCLR)} = version,",
+				"          {version_date(TMAPCLR)} = version_date,",
+				"          {brand(TMAPCLR)} = brand,",
+				"          {effect(TMAPCLR)} = effect,",
+				"          {density(TMAPCLR)} = density,",
+				"          {last_update(TMAPCLR)} = last_update,",
+				"          {id(TMAPSPC)} = stgSpectro@id,",
+				"          {originated(TMAPSPC)} = stgSpectro@originated,",
+				"          {color(TMAPSPC)} = stgSpectro@color,",
+				"          {angle(TMAPSPC)} = stgSpectro@angle,",
+				"          {graininess(TMAPSPC)} = stgSpectro@graininess",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
+				"tMap3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> stgColorShadeTMap3"
 			]
 		}
 	}
