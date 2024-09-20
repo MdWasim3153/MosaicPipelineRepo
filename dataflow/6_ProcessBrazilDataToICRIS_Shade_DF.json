@@ -29,11 +29,7 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [
-				{
-					"name": "stgColorShade6and7"
-				}
-			],
+			"sinks": [],
 			"transformations": [
 				{
 					"name": "joiningspectroandcolor"
@@ -180,23 +176,7 @@
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> tMap3",
-				"tMap3 sink(validateSchema: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     store: 'cache',",
-				"     format: 'inline',",
-				"     output: false,",
-				"     saveOrder: 1,",
-				"     mapColumn(",
-				"          {graininess(INSPC)},",
-				"          {id(INCLR)},",
-				"          {universal_code(INCLR)},",
-				"          {color_name(INCLR)},",
-				"          {brand(INCLR)},",
-				"          {last_update(INCLR)},",
-				"          description = {description(INVAR)}",
-				"     )) ~> stgColorShade6and7"
+				"     broadcast: 'auto')~> tMap3"
 			]
 		}
 	}
