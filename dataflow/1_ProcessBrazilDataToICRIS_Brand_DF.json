@@ -73,9 +73,6 @@
 				},
 				{
 					"name": "select4"
-				},
-				{
-					"name": "AlterRow1"
 				}
 			],
 			"scriptLines": [
@@ -159,14 +156,13 @@
 				"filter2 derive(UPDeleted = '0',",
 				"          UPDatemodifiedTalend = currentUTC('{DateModifiedTalend(UPICRISBR)}')) ~> derivedColumn2",
 				"derivedColumn2 select(mapColumn(",
-				"          {description(UPBR)},",
 				"          {Code(UPICRISBR)},",
 				"          UPDeleted,",
-				"          UPDatemodifiedTalend",
+				"          UPDatemodifiedTalend,",
+				"          {Name(UPICRISBR)}",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
-				"select4 alterRow(updateIf(!isNull({Code(UPICRISBR)}))) ~> AlterRow1",
 				"NotNullValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -183,6 +179,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          Code = {id(INBR)},",
@@ -191,7 +188,7 @@
 				"          DateModifiedTalend = changedModifiedDate,",
 				"          Id = newId",
 				"     )) ~> InsertSink",
-				"AlterRow1 sink(allowSchemaDrift: true,",
+				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          Code as string,",
@@ -202,12 +199,19 @@
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
-				"     updateable:true,",
+				"     updateable:false,",
 				"     upsertable:false,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> UpdateSink"
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Code = {Code(UPICRISBR)},",
+				"          Name = {Name(UPICRISBR)},",
+				"          Deleted = UPDeleted,",
+				"          DateModifiedTalend = UPDatemodifiedTalend",
+				"     )) ~> UpdateSink"
 			]
 		}
 	}
