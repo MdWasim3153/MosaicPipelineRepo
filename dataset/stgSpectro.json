@@ -1,0 +1,43 @@
+{
+	"name": "stgSpectro",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "decimal",
+				"precision": 8,
+				"scale": 0
+			},
+			{
+				"name": "originated",
+				"type": "varchar"
+			},
+			{
+				"name": "color",
+				"type": "varchar"
+			},
+			{
+				"name": "angle",
+				"type": "decimal",
+				"precision": 3,
+				"scale": 0
+			},
+			{
+				"name": "graininess",
+				"type": "decimal",
+				"precision": 4,
+				"scale": 2
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stg_Spectro"
+		}
+	}
+}
