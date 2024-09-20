@@ -24,9 +24,16 @@
 						"type": "DatasetReference"
 					},
 					"name": "stgSpectro"
+				},
+				{
+					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"name": "stgColorShade6and7"
+				}
+			],
 			"transformations": [
 				{
 					"name": "joiningspectroandcolor"
@@ -48,6 +55,9 @@
 				},
 				{
 					"name": "filter1"
+				},
+				{
+					"name": "tMap3"
 				}
 			],
 			"scriptLines": [
@@ -90,6 +100,8 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> stgSpectro",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> source1",
 				"stgSpectro, stgColor join(color == stgColor@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -156,12 +168,35 @@
 				"          {last_update(INCLR)},",
 				"          {color(INVAR)},",
 				"          {color_variant(INVAR)},",
-				"          descrip,",
-				"          {angle(INSPC)}",
+				"          description = descrip,",
+				"          {angle(INSPC)},",
+				"          {description(INVAR)}",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select3 filter(isNull({color_variant(INVAR)}) && contains(array(15, 45, 75), {angle(INSPC)})) ~> filter1"
+				"select3 filter(!isNull({color_variant(INVAR)}) && {angle(INSPC)}==15||{angle(INSPC)}==45||{angle(INSPC)}==75\r",
+				") ~> filter1",
+				"filter1, stgColor join({id(INCLR)} == id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> tMap3",
+				"tMap3 sink(validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     store: 'cache',",
+				"     format: 'inline',",
+				"     output: false,",
+				"     saveOrder: 1,",
+				"     mapColumn(",
+				"          {graininess(INSPC)},",
+				"          {id(INCLR)},",
+				"          {universal_code(INCLR)},",
+				"          {color_name(INCLR)},",
+				"          {brand(INCLR)},",
+				"          {last_update(INCLR)},",
+				"          description = {description(INVAR)}",
+				"     )) ~> stgColorShade6and7"
 			]
 		}
 	}
