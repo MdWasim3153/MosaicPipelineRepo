@@ -12,9 +12,6 @@
 					"name": "stgColor"
 				},
 				{
-					"name": "stgVariantisnull"
-				},
-				{
 					"dataset": {
 						"referenceName": "stgSpectro",
 						"type": "DatasetReference"
@@ -34,6 +31,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "stgVariantNull"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgVariant",
+						"type": "DatasetReference"
+					},
+					"name": "stgVariantNotNull"
 				}
 			],
 			"sinks": [
@@ -104,8 +108,6 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> stgColor",
-				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> stgVariantisnull",
 				"source(output(",
 				"          id as decimal(8,0),",
 				"          originated as string,",
@@ -140,6 +142,17 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'select * from stg_Variant where color_Variant is null',",
 				"     format: 'query') ~> stgVariantNull",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          color_variant as string,",
+				"          description as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgVariantNotNull",
 				"stgSpectro, stgColor join(color == stgColor@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -165,7 +178,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1, stgVariantisnull join({color(INSPC)} == color_variant,",
+				"select1, stgVariantNotNull join({color(INSPC)} == color_variant,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -269,7 +282,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select5",
-				"select5, stgVariantisnull join({id(INCLR)} == color_variant,",
+				"select5, stgVariantNull join({id(INCLR)} == color_variant,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -285,7 +298,7 @@
 				"          {last_update(INCLR)},",
 				"          {color(INVAR)},",
 				"          {color_variant(INVAR)},",
-				"          description,",
+				"          description = select5@description,",
 				"          {angle(INSPC)},",
 				"          {description(INVAR)},",
 				"          {id(TMCLR)},",
@@ -303,7 +316,7 @@
 				"          {originated(TMVAR)} = originated,",
 				"          {color(TMVAR)} = color,",
 				"          {color_variant(TMVAR)} = color_variant,",
-				"          {description(TMVAR)} = stgVariantisnull@description,",
+				"          {description(TMVAR)} = stgVariant@description,",
 				"          TMChanges",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
