@@ -12,11 +12,7 @@
 					"name": "stgColor"
 				},
 				{
-					"dataset": {
-						"referenceName": "stgVariant",
-						"type": "DatasetReference"
-					},
-					"name": "stgVariant"
+					"name": "stgVariantisnull"
 				},
 				{
 					"dataset": {
@@ -31,6 +27,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "stgColorMergingTmap3"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgVariant",
+						"type": "DatasetReference"
+					},
+					"name": "stgVariantNull"
 				}
 			],
 			"sinks": [
@@ -71,7 +74,16 @@
 					"name": "select4"
 				},
 				{
-					"name": "aggregate1"
+					"name": "select5"
+				},
+				{
+					"name": "joinTMVar"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "select6"
 				}
 			],
 			"scriptLines": [
@@ -92,17 +104,8 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> stgColor",
-				"source(output(",
-				"          id as decimal(8,0),",
-				"          originated as string,",
-				"          color as string,",
-				"          color_variant as string,",
-				"          description as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> stgVariant",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> stgVariantisnull",
 				"source(output(",
 				"          id as decimal(8,0),",
 				"          originated as string,",
@@ -125,6 +128,18 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> stgColorMergingTmap3",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          color_variant as string,",
+				"          description as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select * from stg_Variant where color_Variant is null',",
+				"     format: 'query') ~> stgVariantNull",
 				"stgSpectro, stgColor join(color == stgColor@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -150,7 +165,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1, stgVariant join({color(INSPC)} == color_variant,",
+				"select1, stgVariantisnull join({color(INSPC)} == color_variant,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -197,7 +212,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"aggregate1, stgColor join({color(INVAR)} == id,",
+				"select3, stgColor join({color(INVAR)} == id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -227,8 +242,73 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
-				"select3 aggregate() ~> aggregate1",
-				"tMap3 sink(allowSchemaDrift: true,",
+				"tMap3 select(mapColumn(",
+				"          {graininess(INSPC)},",
+				"          {id(INCLR)},",
+				"          {universal_code(INCLR)},",
+				"          {color_name(INCLR)},",
+				"          {brand(INCLR)},",
+				"          {effect(INCLR)},",
+				"          {last_update(INCLR)},",
+				"          {color(INVAR)},",
+				"          {color_variant(INVAR)},",
+				"          description,",
+				"          {angle(INSPC)},",
+				"          {description(INVAR)},",
+				"          {id(TMCLR)} = id,",
+				"          {originated(TMCLR)} = originated,",
+				"          {universal_code(TMCLR)} = universal_code,",
+				"          {color_name(TMCLR)} = color_name,",
+				"          {year(TMCLR)} = year,",
+				"          {version(TMCLR)} = version,",
+				"          {version_date(TMCLR)} = version_date,",
+				"          {brand(TMCLR)} = brand,",
+				"          {effect(TMCLR)} = effect,",
+				"          {density(TMCLR)} = density,",
+				"          {last_update(TMCLR)} = last_update",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select5",
+				"select5, stgVariantisnull join({id(INCLR)} == color_variant,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinTMVar",
+				"joinTMVar derive(TMChanges = iif({angle(INSPC)}==15 || {angle(INSPC)}==45 || {angle(INSPC)}==75, 'true','false')) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          {graininess(INSPC)},",
+				"          {id(INCLR)},",
+				"          {universal_code(INCLR)},",
+				"          {color_name(INCLR)},",
+				"          {brand(INCLR)},",
+				"          {effect(INCLR)},",
+				"          {last_update(INCLR)},",
+				"          {color(INVAR)},",
+				"          {color_variant(INVAR)},",
+				"          description,",
+				"          {angle(INSPC)},",
+				"          {description(INVAR)},",
+				"          {id(TMCLR)},",
+				"          {originated(TMCLR)},",
+				"          {universal_code(TMCLR)},",
+				"          {color_name(TMCLR)},",
+				"          {year(TMCLR)},",
+				"          {version(TMCLR)},",
+				"          {version_date(TMCLR)},",
+				"          {brand(TMCLR)},",
+				"          {effect(TMCLR)},",
+				"          {density(TMCLR)},",
+				"          {last_update(TMCLR)},",
+				"          {id(TMVAR)} = id,",
+				"          {originated(TMVAR)} = originated,",
+				"          {color(TMVAR)} = color,",
+				"          {color_variant(TMVAR)} = color_variant,",
+				"          {description(TMVAR)} = stgVariantisnull@description,",
+				"          TMChanges",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select6",
+				"select6 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
