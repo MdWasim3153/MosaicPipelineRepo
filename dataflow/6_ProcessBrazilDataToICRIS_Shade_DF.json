@@ -38,6 +38,20 @@
 						"type": "DatasetReference"
 					},
 					"name": "stgVariantNotNull"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormula",
+						"type": "DatasetReference"
+					},
+					"name": "ICRISstgFormula"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormulaMeasurement",
+						"type": "DatasetReference"
+					},
+					"name": "ICRISstgFormulaMeasurement"
 				}
 			],
 			"sinks": [
@@ -46,7 +60,7 @@
 						"referenceName": "stgColorShadeTMap3",
 						"type": "DatasetReference"
 					},
-					"name": "stgColorShadeTMap3"
+					"name": "NewFm"
 				}
 			],
 			"transformations": [
@@ -88,6 +102,9 @@
 				},
 				{
 					"name": "select6"
+				},
+				{
+					"name": "join2"
 				}
 			],
 			"scriptLines": [
@@ -152,7 +169,39 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> stgVariantNotNull",
+				"     query: 'select * from stg_Variant where color_Variant is not null',",
+				"     format: 'query') ~> stgVariantNotNull",
+				"source(output(",
+				"          Id as integer,",
+				"          TalendId as integer,",
+				"          ColorId as integer,",
+				"          StagingId as string,",
+				"          QualityId as string,",
+				"          UndercoatCode as string,",
+				"          Deleted as boolean,",
+				"          DateCreated as timestamp,",
+				"          DateModified as timestamp,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ICRISstgFormula",
+				"source(output(",
+				"          Id as integer,",
+				"          FormulaId as integer,",
+				"          TalendId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Description as string,",
+				"          Graininess as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ICRISstgFormulaMeasurement",
 				"stgSpectro, stgColor join(color == stgColor@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -208,7 +257,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
-				"select2 derive(descrip = iif({id(INCLR)}=={color_variant(INVAR)},{description(INVAR)},'')) ~> Description",
+				"select2 derive(descrip = iif({angle(INSPC)}==15 || {angle(INSPC)}==45 || {angle(INSPC)}==75, 'true','false')) ~> Description",
 				"Description select(mapColumn(",
 				"          {graininess(INSPC)},",
 				"          {id(INCLR)},",
@@ -283,45 +332,32 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select5",
 				"select5, stgVariantNull join({id(INCLR)} == color_variant,",
-				"     joinType:'inner',",
+				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinTMVar",
-				"joinTMVar derive(TMChanges = iif({angle(INSPC)}==15 || {angle(INSPC)}==45 || {angle(INSPC)}==75, 'true','false')) ~> derivedColumn1",
+				"joinTMVar derive(TMChanges = iif({angle(INSPC)}==15 || {angle(INSPC)}==45 || {angle(INSPC)}==75, 'true','false'),",
+				"          TMID = '0',",
+				"          TMFRID = '0',",
+				"          TMDEL = 'False') ~> derivedColumn1",
 				"derivedColumn1 select(mapColumn(",
 				"          {graininess(INSPC)},",
-				"          {id(INCLR)},",
-				"          {universal_code(INCLR)},",
-				"          {color_name(INCLR)},",
-				"          {brand(INCLR)},",
-				"          {effect(INCLR)},",
-				"          {last_update(INCLR)},",
-				"          {color(INVAR)},",
-				"          {color_variant(INVAR)},",
-				"          description = select5@description,",
-				"          {angle(INSPC)},",
-				"          {description(INVAR)},",
 				"          {id(TMCLR)},",
-				"          {originated(TMCLR)},",
-				"          {universal_code(TMCLR)},",
-				"          {color_name(TMCLR)},",
-				"          {year(TMCLR)},",
-				"          {version(TMCLR)},",
-				"          {version_date(TMCLR)},",
-				"          {brand(TMCLR)},",
-				"          {effect(TMCLR)},",
-				"          {density(TMCLR)},",
 				"          {last_update(TMCLR)},",
-				"          {id(TMVAR)} = id,",
-				"          {originated(TMVAR)} = originated,",
-				"          {color(TMVAR)} = color,",
-				"          {color_variant(TMVAR)} = color_variant,",
-				"          {description(TMVAR)} = stgVariant@description,",
-				"          TMChanges",
+				"          {description(TMNULVAR)} = stgVariantNull@description,",
+				"          TMChanges,",
+				"          TMID,",
+				"          TMFRID,",
+				"          TMDEL",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select6",
-				"select6 sink(allowSchemaDrift: true,",
+				"select6, ICRISstgFormula join({id(TMCLR)} == StagingId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -331,7 +367,7 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> stgColorShadeTMap3"
+				"     errorHandlingOption: 'stopOnFirstError') ~> NewFm"
 			]
 		}
 	}

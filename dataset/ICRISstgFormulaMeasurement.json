@@ -1,0 +1,59 @@
+{
+	"name": "ICRISstgFormulaMeasurement",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "FormulaId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "TalendId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StagingId",
+				"type": "nvarchar"
+			},
+			{
+				"name": "FormulaTalendId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Description",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Graininess",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Deleted",
+				"type": "bit"
+			},
+			{
+				"name": "DateModifiedTalend",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ICRIS_stg_FormulaMeasurement"
+		}
+	}
+}
