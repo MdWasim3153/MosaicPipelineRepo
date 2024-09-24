@@ -104,7 +104,7 @@
 					"name": "select6"
 				},
 				{
-					"name": "join2"
+					"name": "join"
 				}
 			],
 			"scriptLines": [
@@ -356,8 +356,8 @@
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join2",
-				"join2 sink(allowSchemaDrift: true,",
+				"     broadcast: 'auto')~> join",
+				"join sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
