@@ -57,10 +57,17 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "stgColorShadeTMap3",
+						"referenceName": "ICRISstgFormulaMeasurement",
 						"type": "DatasetReference"
 					},
-					"name": "NewFm"
+					"name": "NewFmInsert"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormulaMeasurement",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateFM"
 				}
 			],
 			"transformations": [
@@ -84,12 +91,6 @@
 				},
 				{
 					"name": "tMap3"
-				},
-				{
-					"name": "join1"
-				},
-				{
-					"name": "select4"
 				},
 				{
 					"name": "select5"
@@ -116,7 +117,10 @@
 					"name": "select8"
 				},
 				{
-					"name": "derivedColumn2"
+					"name": "stagingidisnull"
+				},
+				{
+					"name": "stagingidisnotnull"
 				}
 			],
 			"scriptLines": [
@@ -291,31 +295,6 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> tMap3",
-				"stgColorMergingTmap3, stgColor join(color == stgColor@id,",
-				"     joinType:'left',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1",
-				"join1 select(mapColumn(",
-				"          {id(TMAPCLR)} = stgColorMergingTmap3@id,",
-				"          {originated(TMAPCLR)} = stgColorMergingTmap3@originated,",
-				"          {universal_code(TMAPCLR)} = universal_code,",
-				"          {color_name(TMAPCLR)} = color_name,",
-				"          {year(TMAPCLR)} = year,",
-				"          {version(TMAPCLR)} = version,",
-				"          {version_date(TMAPCLR)} = version_date,",
-				"          {brand(TMAPCLR)} = brand,",
-				"          {effect(TMAPCLR)} = effect,",
-				"          {density(TMAPCLR)} = density,",
-				"          {last_update(TMAPCLR)} = last_update,",
-				"          {id(TMAPSPC)} = {stgSpectro@id},",
-				"          {originated(TMAPSPC)} = {stgSpectro@originated},",
-				"          {color(TMAPSPC)} = {stgSpectro@color},",
-				"          {angle(TMAPSPC)} = {stgSpectro@angle},",
-				"          {graininess(TMAPSPC)} = {stgSpectro@graininess}",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select4",
 				"tMap3 select(mapColumn(",
 				"          {graininess(INSPC)},",
 				"          {id(INCLR)},",
@@ -397,39 +376,32 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinICRISFrmMeasure",
 				"joinICRISFrmMeasure select(mapColumn(",
-				"          {graininess(INSPC)},",
-				"          {id(TMCLR)},",
-				"          {last_update(TMCLR)},",
-				"          {description(TMNULVAR)},",
-				"          TMChanges,",
 				"          TMID,",
 				"          TMFRID,",
-				"          TMDEL,",
-				"          {Id(TMICRISFRM)},",
-				"          {TalendId(TMICRISFRM)},",
-				"          {ColorId(TMICRISFRM)},",
-				"          {StagingId(TMICRISFRM)},",
-				"          {QualityId(TMICRISFRM)},",
-				"          {UndercoatCode(TMICRISFRM)},",
-				"          {Deleted(TMICRISFRM)},",
-				"          {DateCreated(TMICRISFRM)},",
-				"          {DateModified(TMICRISFRM)},",
-				"          {DateModifiedTalend(TMICRISFRM)},",
-				"          {Id(TMICRISFRMMMT)} = Id,",
-				"          {FormulaId(TMICRISFRMMMT)} = FormulaId,",
-				"          {TalendId(TMICRISFRMMMT)} = TalendId,",
-				"          {StagingId(TMICRISFRMMMT)} = StagingId,",
-				"          {FormulaTalendId(TMICRISFRMMMT)} = FormulaTalendId,",
-				"          {Description(TMICRISFRMMMT)} = Description,",
-				"          {Graininess(TMICRISFRMMMT)} = Graininess,",
-				"          {Deleted(TMICRISFRMMMT)} = Deleted,",
-				"          {DateModifiedTalend(TMICRISFRMMMT)} = DateModifiedTalend",
+				"          StagingId = Id,",
+				"          FormulaTalendId = {TalendId(TMICRISFRM)},",
+				"          Description,",
+				"          Graininess = {graininess(INSPC)},",
+				"          Delete = TMDEL,",
+				"          DateModifiedTalend = {last_update(TMCLR)}",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select8",
-				"select8 derive({CheckStagingId(TMICRISFRMMMT)null} = isNull({StagingId(TMICRISFRMMMT)})) ~> derivedColumn2",
-				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"select8 filter(isNull(StagingId)) ~> stagingidisnull",
+				"select8 filter(!isNull(StagingId)) ~> stagingidisnotnull",
+				"stagingidisnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          FormulaId as integer,",
+				"          TalendId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Description as string,",
+				"          Graininess as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
 				"     updateable:false,",
@@ -437,8 +409,47 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> NewFm"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id = TMID,",
+				"          FormulaId = TMFRID,",
+				"          TalendId = StagingId,",
+				"          StagingId,",
+				"          FormulaTalendId,",
+				"          Description,",
+				"          Graininess,",
+				"          Deleted = Delete,",
+				"          DateModifiedTalend",
+				"     )) ~> NewFmInsert",
+				"stagingidisnotnull sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          FormulaId as integer,",
+				"          TalendId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Description as string,",
+				"          Graininess as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          StagingId,",
+				"          FormulaTalendId,",
+				"          Description,",
+				"          Graininess,",
+				"          Deleted = Delete,",
+				"          DateModifiedTalend",
+				"     )) ~> UpdateFM"
 			]
 		}
 	}
