@@ -104,10 +104,19 @@
 					"name": "select6"
 				},
 				{
-					"name": "join"
+					"name": "joinICRISFormula"
 				},
 				{
 					"name": "select7"
+				},
+				{
+					"name": "joinICRISFrmMeasure"
+				},
+				{
+					"name": "select8"
+				},
+				{
+					"name": "derivedColumn2"
 				}
 			],
 			"scriptLines": [
@@ -359,8 +368,8 @@
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join",
-				"join select(mapColumn(",
+				"     broadcast: 'auto')~> joinICRISFormula",
+				"joinICRISFormula select(mapColumn(",
 				"          {graininess(INSPC)},",
 				"          {id(TMCLR)},",
 				"          {last_update(TMCLR)},",
@@ -382,7 +391,44 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select7",
-				"select7 sink(allowSchemaDrift: true,",
+				"select7, ICRISstgFormulaMeasurement join({TalendId(TMICRISFRM)} == FormulaTalendId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinICRISFrmMeasure",
+				"joinICRISFrmMeasure select(mapColumn(",
+				"          {graininess(INSPC)},",
+				"          {id(TMCLR)},",
+				"          {last_update(TMCLR)},",
+				"          {description(TMNULVAR)},",
+				"          TMChanges,",
+				"          TMID,",
+				"          TMFRID,",
+				"          TMDEL,",
+				"          {Id(TMICRISFRM)},",
+				"          {TalendId(TMICRISFRM)},",
+				"          {ColorId(TMICRISFRM)},",
+				"          {StagingId(TMICRISFRM)},",
+				"          {QualityId(TMICRISFRM)},",
+				"          {UndercoatCode(TMICRISFRM)},",
+				"          {Deleted(TMICRISFRM)},",
+				"          {DateCreated(TMICRISFRM)},",
+				"          {DateModified(TMICRISFRM)},",
+				"          {DateModifiedTalend(TMICRISFRM)},",
+				"          {Id(TMICRISFRMMMT)} = Id,",
+				"          {FormulaId(TMICRISFRMMMT)} = FormulaId,",
+				"          {TalendId(TMICRISFRMMMT)} = TalendId,",
+				"          {StagingId(TMICRISFRMMMT)} = StagingId,",
+				"          {FormulaTalendId(TMICRISFRMMMT)} = FormulaTalendId,",
+				"          {Description(TMICRISFRMMMT)} = Description,",
+				"          {Graininess(TMICRISFRMMMT)} = Graininess,",
+				"          {Deleted(TMICRISFRMMMT)} = Deleted,",
+				"          {DateModifiedTalend(TMICRISFRMMMT)} = DateModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select8",
+				"select8 derive({CheckStagingId(TMICRISFRMMMT)null} = isNull({StagingId(TMICRISFRMMMT)})) ~> derivedColumn2",
+				"derivedColumn2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
