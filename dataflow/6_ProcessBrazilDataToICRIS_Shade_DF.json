@@ -57,17 +57,17 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ICRISstgFormulaMeasurement",
+						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "NewFmInsert"
+					"name": "sink1"
 				},
 				{
 					"dataset": {
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "NewFmInsert"
 				}
 			],
 			"transformations": [
@@ -389,43 +389,14 @@
 				"     skipDuplicateMapOutputs: true) ~> select8",
 				"select8 filter(isNull(StagingId)) ~> stagingidisnull",
 				"select8 filter(!isNull(StagingId)) ~> stagingidisnotnull",
-				"stagingidisnull sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     input(",
-				"          Id as integer,",
-				"          FormulaId as integer,",
-				"          TalendId as integer,",
-				"          StagingId as string,",
-				"          FormulaTalendId as integer,",
-				"          Description as string,",
-				"          Graininess as double,",
-				"          Deleted as boolean,",
-				"          DateModifiedTalend as timestamp",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     format: 'table',",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 0,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          Id = TMID,",
-				"          FormulaId = TMFRID,",
-				"          TalendId = StagingId,",
-				"          StagingId,",
-				"          FormulaTalendId,",
-				"          Description,",
-				"          Graininess,",
-				"          Deleted = Delete,",
-				"          DateModifiedTalend",
-				"     )) ~> NewFmInsert",
 				"stagingidisnotnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1"
+				"     skipDuplicateMapOutputs: true) ~> sink1",
+				"stagingidisnull sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> NewFmInsert"
 			]
 		}
 	}
