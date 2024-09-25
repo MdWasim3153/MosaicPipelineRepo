@@ -64,10 +64,10 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "ICRISstgFormulaMeasurement",
+						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "UpdateFM"
+					"name": "sink1"
 				}
 			],
 			"transformations": [
@@ -409,6 +409,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 0,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          Id = TMID,",
@@ -423,33 +424,8 @@
 				"     )) ~> NewFmInsert",
 				"stagingidisnotnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     input(",
-				"          Id as integer,",
-				"          FormulaId as integer,",
-				"          TalendId as integer,",
-				"          StagingId as string,",
-				"          FormulaTalendId as integer,",
-				"          Description as string,",
-				"          Graininess as double,",
-				"          Deleted as boolean,",
-				"          DateModifiedTalend as timestamp",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          StagingId,",
-				"          FormulaTalendId,",
-				"          Description,",
-				"          Graininess,",
-				"          Deleted = Delete,",
-				"          DateModifiedTalend",
-				"     )) ~> UpdateFM"
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
