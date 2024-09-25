@@ -472,15 +472,18 @@
 				"stagingidisnotnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> sink1",
 				"stagingidisnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> NewFmInsert",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> NewFmInsert",
 				"select10 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DelUpdate"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> DelUpdate"
 			]
 		}
 	}
