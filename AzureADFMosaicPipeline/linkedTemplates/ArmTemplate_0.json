@@ -774,7 +774,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "stgIngredientTempData",
+						"fileName": "stgFormulaMeasurementDelete",
 						"folderPath": "TEST",
 						"container": "brdata"
 					},
