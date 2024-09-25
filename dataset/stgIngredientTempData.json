@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "stgFormulaMeasurementInsert",
+				"fileName": "stgFormulaMeasurementDelete",
 				"folderPath": "TEST",
 				"container": "brdata"
 			},

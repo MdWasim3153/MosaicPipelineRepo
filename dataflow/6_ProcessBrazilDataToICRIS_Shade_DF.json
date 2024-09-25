@@ -52,6 +52,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "ICRISstgFormulaMeasurement"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgVariant",
+						"type": "DatasetReference"
+					},
+					"name": "stgVariant"
 				}
 			],
 			"sinks": [
@@ -68,6 +75,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "NewFmInsert"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "DelUpdate"
 				}
 			],
 			"transformations": [
@@ -121,6 +135,21 @@
 				},
 				{
 					"name": "stagingidisnotnull"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "select9"
+				},
+				{
+					"name": "joinICRISFRMMMT"
+				},
+				{
+					"name": "select10"
+				},
+				{
+					"name": "derivedColumn2"
 				}
 			],
 			"scriptLines": [
@@ -218,6 +247,17 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISstgFormulaMeasurement",
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          color_variant as string,",
+				"          description as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgVariant",
 				"stgSpectro, stgColor join(color == stgColor@id,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -389,6 +429,46 @@
 				"     skipDuplicateMapOutputs: true) ~> select8",
 				"select8 filter(isNull(StagingId)) ~> stagingidisnull",
 				"select8 filter(!isNull(StagingId)) ~> stagingidisnotnull",
+				"stgColor, stgVariant join(stgColor@id == color_variant,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 select(mapColumn(",
+				"          {id(DLCLR)} = stgColor@id,",
+				"          {originated(DLCLR)} = stgColor@originated,",
+				"          {universal_code(DLCLR)} = universal_code,",
+				"          {color_name(DLCLR)} = color_name,",
+				"          {year(DLCLR)} = year,",
+				"          {version(DLCLR)} = version,",
+				"          {version_date(DLCLR)} = version_date,",
+				"          {brand(DLCLR)} = brand,",
+				"          {effect(DLCLR)} = effect,",
+				"          {density(DLCLR)} = density,",
+				"          {last_update(DLCLR)} = last_update,",
+				"          {id(DLVAR)} = stgVariant@id,",
+				"          {originated(DLVAR)} = stgVariant@originated,",
+				"          {color(DLVAR)} = color,",
+				"          {color_variant(DLVAR)} = color_variant,",
+				"          {description(DLVAR)} = description",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select9",
+				"select9, ICRISstgFormulaMeasurement join({id(DLCLR)} == StagingId,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinICRISFRMMMT",
+				"derivedColumn2 select(mapColumn(",
+				"          {id(DLCLR)},",
+				"          {TalendId(DLICRISFRMMT)} = TalendId,",
+				"          {StagingId(DLICRISFRMMT)} = StagingId,",
+				"          {Deleted(DLICRISFRMMT)} = Deleted,",
+				"          {DateModifiedTalend(DLICRISFRMMT)} = CURDATE",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select10",
+				"joinICRISFRMMMT derive(CURDATE = currentUTC('DateModifiedTalend')) ~> derivedColumn2",
 				"stagingidisnotnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -396,7 +476,11 @@
 				"stagingidisnull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> NewFmInsert"
+				"     skipDuplicateMapOutputs: true) ~> NewFmInsert",
+				"select10 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DelUpdate"
 			]
 		}
 	}
