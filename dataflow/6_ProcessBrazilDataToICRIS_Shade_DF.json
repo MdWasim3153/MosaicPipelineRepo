@@ -105,6 +105,9 @@
 				},
 				{
 					"name": "join"
+				},
+				{
+					"name": "select7"
 				}
 			],
 			"scriptLines": [
@@ -357,7 +360,29 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join",
-				"join sink(allowSchemaDrift: true,",
+				"join select(mapColumn(",
+				"          {graininess(INSPC)},",
+				"          {id(TMCLR)},",
+				"          {last_update(TMCLR)},",
+				"          {description(TMNULVAR)},",
+				"          TMChanges,",
+				"          TMID,",
+				"          TMFRID,",
+				"          TMDEL,",
+				"          {Id(TMICRISFRM)} = Id,",
+				"          {TalendId(TMICRISFRM)} = TalendId,",
+				"          {ColorId(TMICRISFRM)} = ColorId,",
+				"          {StagingId(TMICRISFRM)} = StagingId,",
+				"          {QualityId(TMICRISFRM)} = QualityId,",
+				"          {UndercoatCode(TMICRISFRM)} = UndercoatCode,",
+				"          {Deleted(TMICRISFRM)} = Deleted,",
+				"          {DateCreated(TMICRISFRM)} = DateCreated,",
+				"          {DateModified(TMICRISFRM)} = DateModified,",
+				"          {DateModifiedTalend(TMICRISFRM)} = DateModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select7",
+				"select7 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
