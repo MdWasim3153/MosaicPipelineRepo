@@ -23,10 +23,6 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'BRSpectro'"
 		},
-		"OnPremDatabase_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'OnPremDatabase'"
-		},
 		"AzureSqlDatabase1_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "brazildb.database.windows.net"
@@ -50,18 +46,6 @@
 		"BRSpectro_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "user"
-		},
-		"OnPremDatabase_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "PF4WB9DF\\SQLEXP2019"
-		},
-		"OnPremDatabase_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "AdventureWorks2019"
-		},
-		"OnPremDatabase_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "sa"
 		}
 	},
 	"variables": {
@@ -148,6 +132,35 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DLstgIngredientoutput')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "DLstgIngredientoutput",
+						"folderPath": "TEST",
+						"container": "brdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ICRISStgIngredient')]",
@@ -420,6 +433,70 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgFormulaMeasurement')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "FormulaId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TalendId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StagingId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FormulaTalendId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Graininess",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_FormulaMeasurement"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/TableJson')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -554,6 +631,27 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "stg_Color"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgColorShadeTMap3')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "stgColorShadeTMap3"
 				}
 			},
 			"dependsOn": [
@@ -774,107 +872,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/stgVariant')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "BRSpectro",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "id",
-						"type": "decimal",
-						"precision": 8,
-						"scale": 0
-					},
-					{
-						"name": "originated",
-						"type": "varchar"
-					},
-					{
-						"name": "color",
-						"type": "varchar"
-					},
-					{
-						"name": "color_variant",
-						"type": "varchar"
-					},
-					{
-						"name": "description",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "stg_Variant"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/OnPremDatabase')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "SqlServer",
-				"typeProperties": {
-					"server": "[parameters('OnPremDatabase_properties_typeProperties_server')]",
-					"database": "[parameters('OnPremDatabase_properties_typeProperties_database')]",
-					"encrypt": "optional",
-					"trustServerCertificate": true,
-					"authenticationType": "SQL",
-					"userName": "[parameters('OnPremDatabase_properties_typeProperties_userName')]",
-					"password": {
-						"type": "SecureString",
-						"value": "[parameters('OnPremDatabase_password')]"
-					}
-				},
-				"connectVia": {
-					"referenceName": "OnPremSQLData",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/OnPremSQLData')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DLstgIngredientoutput')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "DLstgIngredientoutput",
-						"folderPath": "TEST",
-						"container": "brdata"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		}
 	]
