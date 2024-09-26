@@ -123,6 +123,9 @@
 				},
 				{
 					"name": "filter3"
+				},
+				{
+					"name": "select8"
 				}
 			],
 			"scriptLines": [
@@ -436,6 +439,13 @@
 				"select7 derive(Deleted = '1',",
 				"          UTCDate = currentUTC('{DateModifiedTalend(ICRIS)}')) ~> derivedColumn3",
 				"derivedColumn3 filter(isNull({Code(ICRIS)})) ~> filter3",
+				"filter3 select(mapColumn(",
+				"          Code = {Code(ICRIS)},",
+				"          Deleted = {Deleted(ICRIS)},",
+				"          DateModifiedTalend = UTCDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select8",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -460,7 +470,7 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 2) ~> UpdateICRISstgProd",
-				"filter3 sink(allowSchemaDrift: true,",
+				"select8 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
