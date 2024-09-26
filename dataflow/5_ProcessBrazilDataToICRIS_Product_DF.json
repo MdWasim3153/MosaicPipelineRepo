@@ -61,6 +61,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UPDATEDELETEDRECORDS"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "UPDATEColor"
 				}
 			],
 			"transformations": [
@@ -126,6 +133,18 @@
 				},
 				{
 					"name": "select8"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "select9"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "select10"
 				}
 			],
 			"scriptLines": [
@@ -446,6 +465,43 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select8",
+				"stgColor, stgFormula join(stgColor@id == color,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 select(mapColumn(",
+				"          {id(CLR)} = stgColor@id,",
+				"          {originated(CLR)} = stgColor@originated,",
+				"          {universal_code(CLR)} = universal_code,",
+				"          {color_name(CLR)} = color_name,",
+				"          {year(CLR)} = year,",
+				"          {version(CLR)} = version,",
+				"          {version_date(CLR)} = version_date,",
+				"          {brand(CLR)} = brand,",
+				"          {effect(CLR)} = effect,",
+				"          {density(CLR)} = density,",
+				"          {last_update(CLR)} = last_update,",
+				"          {id(FRM)} = stgFormula@id,",
+				"          {originated(FRM)} = stgFormula@originated,",
+				"          {color(FRM)} = color,",
+				"          {line(FRM)} = line,",
+				"          {subline(FRM)} = subline,",
+				"          {undercoat(FRM)} = undercoat",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select9",
+				"select9, stgIngredient join({id(FRM)} == formula,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 select(mapColumn(",
+				"          Id = formula,",
+				"          DateModifiedTalend = {last_update(CLR)}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select10",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -474,7 +530,12 @@
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 3) ~> UPDATEDELETEDRECORDS"
+				"     saveOrder: 3) ~> UPDATEDELETEDRECORDS",
+				"select10 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 4) ~> UPDATEColor"
 			]
 		}
 	}
