@@ -1,0 +1,77 @@
+{
+	"name": "ICRISstgProduct",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Type",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Phase",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "UseInFormula",
+				"type": "bit"
+			},
+			{
+				"name": "Density (g/l)",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Red",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Green",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Blue",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Deleted",
+				"type": "bit"
+			},
+			{
+				"name": "DateModifiedTalend",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DisplayCode",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ICRIS_stg_Product"
+		}
+	}
+}
