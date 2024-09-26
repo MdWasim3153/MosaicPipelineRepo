@@ -1,0 +1,123 @@
+{
+	"name": "7_ProcessBrazilDataToICRIS_SMV_DF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "stgSpectro",
+						"type": "DatasetReference"
+					},
+					"name": "stgSpectro"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgSpectroMeasurement",
+						"type": "DatasetReference"
+					},
+					"name": "stgSpectroMeasurement"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormulaMeasurement",
+						"type": "DatasetReference"
+					},
+					"name": "stgFormulaMeasurement"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "selectICRIS"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as decimal(8,0),",
+				"          originated as string,",
+				"          color as string,",
+				"          angle as decimal(3,0),",
+				"          graininess as decimal(4,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgSpectro",
+				"source(output(",
+				"          id as decimal(10,0),",
+				"          originated as string,",
+				"          spectro as decimal(8,0),",
+				"          wavelength as decimal(3,0),",
+				"          value as decimal(10,6)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgSpectroMeasurement",
+				"source(output(",
+				"          Id as integer,",
+				"          FormulaId as integer,",
+				"          TalendId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Description as string,",
+				"          Graininess as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> stgFormulaMeasurement",
+				"stgSpectro, stgSpectroMeasurement join(stgSpectro@id == spectro,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 select(mapColumn(",
+				"          {id(SPC)} = stgSpectro@id,",
+				"          {originated(SPC)} = stgSpectro@originated,",
+				"          {color(SPC)} = color,",
+				"          {angle(SPC)} = angle,",
+				"          {graininess(SPC)} = graininess,",
+				"          {id(SPCMMT)} = stgSpectroMeasurement@id,",
+				"          {originated(SPCMMT)} = stgSpectroMeasurement@originated,",
+				"          {spectro(SPCMMT)} = spectro,",
+				"          {wavelength(SPCMMT)} = wavelength,",
+				"          {value(SPCMMT)} = value",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectICRIS",
+				"selectICRIS, stgFormulaMeasurement join({color(SPC)} == StagingId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 select(mapColumn(",
+				"          {color(SPC)},",
+				"          {angle(SPC)},",
+				"          {wavelength(SPCMMT)},",
+				"          {value(SPCMMT)},",
+				"          {StagingId(ICRISFRMMMT)} = StagingId,",
+				"          {FormulaTalendId(ICRISFRMMMT)} = FormulaTalendId",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 derive(FormulaMeasurementId = '0') ~> derivedColumn1"
+			]
+		}
+	}
+}
