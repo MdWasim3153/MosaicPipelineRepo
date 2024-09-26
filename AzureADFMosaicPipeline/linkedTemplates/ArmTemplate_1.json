@@ -143,6 +143,86 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Type",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Phase",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "UseInFormula",
+						"type": "bit"
+					},
+					{
+						"name": "Density (g/l)",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "Red",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Green",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Blue",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DisplayCode",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_Product"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/1_ProcessBrazilDataToICRIS_Brand_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -2094,6 +2174,553 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/stgSpectro')]",
 				"[concat(variables('factoryId'), '/datasets/stgVariant')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/5_ProcessBrazilDataToICRIS_Product_DF')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "stgIngredient",
+								"type": "DatasetReference"
+							},
+							"name": "stgIngredient"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgFormula",
+								"type": "DatasetReference"
+							},
+							"name": "stgFormula"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgProduct",
+								"type": "DatasetReference"
+							},
+							"name": "stgProduct"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgColor",
+								"type": "DatasetReference"
+							},
+							"name": "stgColor"
+						},
+						{
+							"dataset": {
+								"referenceName": "ICRISstgProduct",
+								"type": "DatasetReference"
+							},
+							"name": "ICRISstgProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "stgIngredientTempData",
+								"type": "DatasetReference"
+							},
+							"name": "InsertICRISstgProductRecords"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredientTempData",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateICRISstgProd"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredientTempData",
+								"type": "DatasetReference"
+							},
+							"name": "UPDATEDELETEDRECORDS"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredientTempData",
+								"type": "DatasetReference"
+							},
+							"name": "UPDATEColor"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joinINGREandFRM"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "joinstgProduct"
+						},
+						{
+							"name": "select2"
+						},
+						{
+							"name": "joinstgColor"
+						},
+						{
+							"name": "select3"
+						},
+						{
+							"name": "joinICRISstgProduct"
+						},
+						{
+							"name": "select4"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "select5"
+						},
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "filter2"
+						},
+						{
+							"name": "aggregate2"
+						},
+						{
+							"name": "select6"
+						},
+						{
+							"name": "joinICRISandBrazilProd"
+						},
+						{
+							"name": "select7"
+						},
+						{
+							"name": "derivedColumn3"
+						},
+						{
+							"name": "filter3"
+						},
+						{
+							"name": "select8"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "select9"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "select10"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          product as string,",
+						"          amount as decimal(8,4),",
+						"          formula as decimal(8,0),",
+						"          ordination as decimal(2,0)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgIngredient",
+						"source(output(",
+						"          id as decimal(8,0),",
+						"          originated as string,",
+						"          color as string,",
+						"          line as string,",
+						"          subline as string,",
+						"          undercoat as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgFormula",
+						"source(output(",
+						"          id as string,",
+						"          display_id as string,",
+						"          originated as string,",
+						"          product_name as string,",
+						"          type as decimal(2,0),",
+						"          used_in_formula as decimal(1,0),",
+						"          density as decimal(8,4)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgProduct",
+						"source(output(",
+						"          id as string,",
+						"          originated as string,",
+						"          universal_code as string,",
+						"          color_name as string,",
+						"          year as decimal(4,0),",
+						"          version as decimal(4,0),",
+						"          version_date as date,",
+						"          brand as string,",
+						"          effect as string,",
+						"          density as decimal(8,4),",
+						"          last_update as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> stgColor",
+						"source(output(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Type as integer,",
+						"          Phase as integer,",
+						"          UseInFormula as boolean,",
+						"          {Density (g/l)} as double,",
+						"          Red as integer,",
+						"          Green as integer,",
+						"          Blue as integer,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer,",
+						"          DisplayCode as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ICRISstgProduct",
+						"stgIngredient, stgFormula join(formula == stgFormula@id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinINGREandFRM",
+						"joinINGREandFRM select(mapColumn(",
+						"          {id(INGRE)} = stgIngredient@id,",
+						"          {originated(INGRE)} = stgIngredient@originated,",
+						"          {product(INGRE)} = product,",
+						"          {amount(INGRE)} = amount,",
+						"          {formula(INGRE)} = formula,",
+						"          {ordination(INGRE)} = ordination,",
+						"          {id(FRM)} = stgFormula@id,",
+						"          {originated(FRM)} = stgFormula@originated,",
+						"          {color(FRM)} = color,",
+						"          {line(FRM)} = line,",
+						"          {subline(FRM)} = subline,",
+						"          {undercoat(FRM)} = undercoat",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1, stgProduct join({product(INGRE)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinstgProduct",
+						"joinstgProduct select(mapColumn(",
+						"          {id(INGRE)},",
+						"          {originated(INGRE)},",
+						"          {product(INGRE)},",
+						"          {amount(INGRE)},",
+						"          {formula(INGRE)},",
+						"          {ordination(INGRE)},",
+						"          {id(FRM)},",
+						"          {originated(FRM)},",
+						"          {color(FRM)},",
+						"          {line(FRM)},",
+						"          {subline(FRM)},",
+						"          {undercoat(FRM)},",
+						"          {id(PRD)} = id,",
+						"          {display_id(PRD)} = display_id,",
+						"          {originated(PRD)} = originated,",
+						"          {product_name(PRD)} = product_name,",
+						"          {type(PRD)} = type,",
+						"          {used_in_formula(PRD)} = used_in_formula,",
+						"          {density(PRD)} = density",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select2, stgColor join({color(FRM)} == id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinstgColor",
+						"joinstgColor select(mapColumn(",
+						"          {id(INGRE)},",
+						"          {originated(INGRE)},",
+						"          {product(INGRE)},",
+						"          {amount(INGRE)},",
+						"          {formula(INGRE)},",
+						"          {ordination(INGRE)},",
+						"          {id(FRM)},",
+						"          {originated(FRM)},",
+						"          {color(FRM)},",
+						"          {line(FRM)},",
+						"          {subline(FRM)},",
+						"          {undercoat(FRM)},",
+						"          {id(PRD)},",
+						"          {display_id(PRD)},",
+						"          {originated(PRD)},",
+						"          {product_name(PRD)},",
+						"          {type(PRD)},",
+						"          {used_in_formula(PRD)},",
+						"          {density(PRD)},",
+						"          {id(CLR)} = id,",
+						"          {originated(CLR)} = originated,",
+						"          {universal_code(CLR)} = universal_code,",
+						"          {color_name(CLR)} = color_name,",
+						"          {year(CLR)} = year,",
+						"          {version(CLR)} = version,",
+						"          {version_date(CLR)} = version_date,",
+						"          {brand(CLR)} = brand,",
+						"          {effect(CLR)} = effect,",
+						"          {density(CLR)} = density,",
+						"          {last_update(CLR)} = last_update",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3, ICRISstgProduct join({id(PRD)} == Code,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinICRISstgProduct",
+						"joinICRISstgProduct select(mapColumn(",
+						"          {id(INGRE)},",
+						"          {originated(INGRE)},",
+						"          {product(INGRE)},",
+						"          {amount(INGRE)},",
+						"          {formula(INGRE)},",
+						"          {ordination(INGRE)},",
+						"          {id(FRM)},",
+						"          {originated(FRM)},",
+						"          {color(FRM)},",
+						"          {line(FRM)},",
+						"          {subline(FRM)},",
+						"          {undercoat(FRM)},",
+						"          {id(PRD)},",
+						"          {display_id(PRD)},",
+						"          {originated(PRD)},",
+						"          {product_name(PRD)},",
+						"          {type(PRD)},",
+						"          {used_in_formula(PRD)},",
+						"          {density(PRD)},",
+						"          {id(CLR)},",
+						"          {originated(CLR)},",
+						"          {universal_code(CLR)},",
+						"          {color_name(CLR)},",
+						"          {year(CLR)},",
+						"          {version(CLR)},",
+						"          {version_date(CLR)},",
+						"          {brand(CLR)},",
+						"          {effect(CLR)},",
+						"          {density(CLR)},",
+						"          {last_update(CLR)},",
+						"          {Code(ICRISPRD)} = Code,",
+						"          {Name(ICRISPRD)} = Name,",
+						"          {Type(ICRISPRD)} = Type,",
+						"          {Phase(ICRISPRD)} = Phase,",
+						"          {UseInFormula(ICRISPRD)} = UseInFormula,",
+						"          {Density (g/l)(ICRISPRD)} = {Density (g/l)},",
+						"          {Red(ICRISPRD)} = Red,",
+						"          {Green(ICRISPRD)} = Green,",
+						"          {Blue(ICRISPRD)} = Blue,",
+						"          {Deleted(ICRISPRD)} = Deleted,",
+						"          {DateModifiedTalend(ICRISPRD)} = DateModifiedTalend,",
+						"          {Id(ICRISPRD)} = Id,",
+						"          {DisplayCode(ICRISPRD)} = DisplayCode",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select4",
+						"select4 derive(UseInFormula = iif(and(not(isNull({used_in_formula(PRD)})), equals({used_in_formula(PRD)}, 1)), 'true', 'false'),",
+						"          Density_Value = iif(isNull({density(PRD)}), toDecimal(null()), toDecimal({density(PRD)})),",
+						"          Phase = '1',",
+						"          Deleted = '0') ~> derivedColumn1",
+						"derivedColumn1 filter(isNull({Code(ICRISPRD)})) ~> filter1",
+						"aggregate1 select(mapColumn(",
+						"          {id(PRD)},",
+						"          {product_name(PRD)},",
+						"          {type(PRD)},",
+						"          Phase,",
+						"          UseInFormula,",
+						"          Density_Value,",
+						"          {Red(ICRISPRD)},",
+						"          {Green(ICRISPRD)},",
+						"          {Blue(ICRISPRD)},",
+						"          Deleted,",
+						"          {last_update(CLR)},",
+						"          {display_id(PRD)}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select5",
+						"filter1 aggregate(groupBy({id(PRD)},",
+						"          {product_name(PRD)},",
+						"          {type(PRD)},",
+						"          Phase,",
+						"          UseInFormula,",
+						"          Density_Value,",
+						"          {Red(ICRISPRD)},",
+						"          {Green(ICRISPRD)},",
+						"          {Blue(ICRISPRD)},",
+						"          Deleted,",
+						"          {last_update(CLR)},",
+						"          {display_id(PRD)}),",
+						"     DistinctID = first({id(PRD)})) ~> aggregate1",
+						"select4 derive(Deleted = '0') ~> derivedColumn2",
+						"derivedColumn2 filter(!isNull({Code(ICRISPRD)})) ~> filter2",
+						"filter2 aggregate(groupBy({id(PRD)},",
+						"          {product_name(PRD)},",
+						"          {type(PRD)},",
+						"          {Phase(ICRISPRD)},",
+						"          {used_in_formula(PRD)},",
+						"          {Density (g/l)(ICRISPRD)},",
+						"          {Red(ICRISPRD)},",
+						"          {Green(ICRISPRD)},",
+						"          {Blue(ICRISPRD)},",
+						"          Deleted,",
+						"          {last_update(CLR)},",
+						"          {display_id(PRD)}),",
+						"     DistinctIdNotNull = first({id(PRD)})) ~> aggregate2",
+						"aggregate2 select(mapColumn(",
+						"          Code = {id(PRD)},",
+						"          Name = {product_name(PRD)},",
+						"          Type = {type(PRD)},",
+						"          Phase = {Phase(ICRISPRD)},",
+						"          UseInFormula = {used_in_formula(PRD)},",
+						"          Density_G_L = {Density (g/l)(ICRISPRD)},",
+						"          Red = {Red(ICRISPRD)},",
+						"          Green = {Green(ICRISPRD)},",
+						"          Blue = {Blue(ICRISPRD)},",
+						"          Deleted,",
+						"          DateModifiedTalend = {last_update(CLR)},",
+						"          DisplayCode = {display_id(PRD)}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select6",
+						"ICRISstgProduct, stgProduct join(Code == stgProduct@id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinICRISandBrazilProd",
+						"joinICRISandBrazilProd select(mapColumn(",
+						"          {Code(ICRIS)} = Code,",
+						"          {Name(ICRIS)} = Name,",
+						"          {Type(ICRIS)} = ICRISstgProduct@Type,",
+						"          {Phase(ICRIS)} = Phase,",
+						"          {UseInFormula(ICRIS)} = UseInFormula,",
+						"          {Density (g/l)(ICRIS)} = {Density (g/l)},",
+						"          {Red(ICRIS)} = Red,",
+						"          {Green(ICRIS)} = Green,",
+						"          {Blue(ICRIS)} = Blue,",
+						"          {Deleted(ICRIS)} = Deleted,",
+						"          {DateModifiedTalend(ICRIS)} = DateModifiedTalend,",
+						"          {Id(ICRIS)} = ICRISstgProduct@Id,",
+						"          {DisplayCode(ICRIS)} = DisplayCode,",
+						"          {id(PRD)} = stgProduct@id,",
+						"          {display_id(PRD)} = display_id,",
+						"          {originated(PRD)} = originated,",
+						"          {product_name(PRD)} = product_name,",
+						"          {type(PRD)} = stgProduct@type,",
+						"          {used_in_formula(PRD)} = used_in_formula,",
+						"          {density(PRD)} = density",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select7",
+						"select7 derive(Deleted = '1',",
+						"          UTCDate = currentUTC('{DateModifiedTalend(ICRIS)}')) ~> derivedColumn3",
+						"derivedColumn3 filter(isNull({Code(ICRIS)})) ~> filter3",
+						"filter3 select(mapColumn(",
+						"          Code = {Code(ICRIS)},",
+						"          Deleted = {Deleted(ICRIS)},",
+						"          DateModifiedTalend = UTCDate",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select8",
+						"stgColor, stgFormula join(stgColor@id == color,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 select(mapColumn(",
+						"          {id(CLR)} = stgColor@id,",
+						"          {originated(CLR)} = stgColor@originated,",
+						"          {universal_code(CLR)} = universal_code,",
+						"          {color_name(CLR)} = color_name,",
+						"          {year(CLR)} = year,",
+						"          {version(CLR)} = version,",
+						"          {version_date(CLR)} = version_date,",
+						"          {brand(CLR)} = brand,",
+						"          {effect(CLR)} = effect,",
+						"          {density(CLR)} = density,",
+						"          {last_update(CLR)} = last_update,",
+						"          {id(FRM)} = stgFormula@id,",
+						"          {originated(FRM)} = stgFormula@originated,",
+						"          {color(FRM)} = color,",
+						"          {line(FRM)} = line,",
+						"          {subline(FRM)} = subline,",
+						"          {undercoat(FRM)} = undercoat",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select9",
+						"select9, stgIngredient join({id(FRM)} == formula,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2 select(mapColumn(",
+						"          Id = formula,",
+						"          DateModifiedTalend = {last_update(CLR)}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select10",
+						"select5 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     mapColumn(",
+						"          {id(PRD)},",
+						"          {product_name(PRD)},",
+						"          {type(PRD)},",
+						"          Phase,",
+						"          UseInFormula,",
+						"          Density_Value,",
+						"          {Red(ICRISPRD)},",
+						"          {Green(ICRISPRD)},",
+						"          {Blue(ICRISPRD)},",
+						"          Deleted,",
+						"          {last_update(CLR)},",
+						"          {display_id(PRD)}",
+						"     )) ~> InsertICRISstgProductRecords",
+						"select6 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2) ~> UpdateICRISstgProd",
+						"select8 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3) ~> UPDATEDELETEDRECORDS",
+						"select10 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 4) ~> UPDATEColor"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ICRISstgProduct')]"
 			]
 		},
 		{
