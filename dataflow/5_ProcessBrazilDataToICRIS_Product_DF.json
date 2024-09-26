@@ -82,6 +82,9 @@
 				},
 				{
 					"name": "select5"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -303,22 +306,22 @@
 				"          Phase = '1',",
 				"          Deleted = '0') ~> derivedColumn1",
 				"derivedColumn1 filter(isNull({Code(ICRISPRD)})) ~> filter1",
-				"filter1 select(mapColumn(",
+				"aggregate1 select(mapColumn(",
 				"          {id(PRD)},",
 				"          {product_name(PRD)},",
 				"          {type(PRD)},",
-				"          Phase,",
 				"          UseInFormula,",
 				"          Density_Value,",
-				"          {Red(ICRISPRD)},",
-				"          {Green(ICRISPRD)},",
-				"          {Blue(ICRISPRD)},",
-				"          Deleted,",
-				"          {last_update(CLR)},",
-				"          {display_id(PRD)}",
+				"          DistinctID",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select5",
+				"filter1 aggregate(groupBy({id(PRD)},",
+				"          {product_name(PRD)},",
+				"          {type(PRD)},",
+				"          UseInFormula,",
+				"          Density_Value),",
+				"     DistinctID = first({id(PRD)})) ~> aggregate1",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -327,13 +330,9 @@
 				"          {id(PRD)},",
 				"          {product_name(PRD)},",
 				"          {type(PRD)},",
-				"          {UseInFormula(ICRISPRD)},",
+				"          UseInFormula,",
 				"          Density_Value,",
-				"          {Red(ICRISPRD)},",
-				"          {Green(ICRISPRD)},",
-				"          {Blue(ICRISPRD)},",
-				"          {last_update(CLR)},",
-				"          {display_id(PRD)}",
+				"          DistinctID",
 				"     )) ~> sink1"
 			]
 		}
