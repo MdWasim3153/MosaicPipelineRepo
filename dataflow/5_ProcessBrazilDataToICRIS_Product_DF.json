@@ -54,6 +54,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UpdateICRISstgProd"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "UPDATEDELETEDRECORDS"
 				}
 			],
 			"transformations": [
@@ -104,6 +111,18 @@
 				},
 				{
 					"name": "select6"
+				},
+				{
+					"name": "joinICRISandBrazilProd"
+				},
+				{
+					"name": "select7"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "filter3"
 				}
 			],
 			"scriptLines": [
@@ -385,6 +404,38 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select6",
+				"ICRISstgProduct, stgProduct join(Code == stgProduct@id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinICRISandBrazilProd",
+				"joinICRISandBrazilProd select(mapColumn(",
+				"          {Code(ICRIS)} = Code,",
+				"          {Name(ICRIS)} = Name,",
+				"          {Type(ICRIS)} = ICRISstgProduct@Type,",
+				"          {Phase(ICRIS)} = Phase,",
+				"          {UseInFormula(ICRIS)} = UseInFormula,",
+				"          {Density (g/l)(ICRIS)} = {Density (g/l)},",
+				"          {Red(ICRIS)} = Red,",
+				"          {Green(ICRIS)} = Green,",
+				"          {Blue(ICRIS)} = Blue,",
+				"          {Deleted(ICRIS)} = Deleted,",
+				"          {DateModifiedTalend(ICRIS)} = DateModifiedTalend,",
+				"          {Id(ICRIS)} = ICRISstgProduct@Id,",
+				"          {DisplayCode(ICRIS)} = DisplayCode,",
+				"          {id(PRD)} = stgProduct@id,",
+				"          {display_id(PRD)} = display_id,",
+				"          {originated(PRD)} = originated,",
+				"          {product_name(PRD)} = product_name,",
+				"          {type(PRD)} = stgProduct@type,",
+				"          {used_in_formula(PRD)} = used_in_formula,",
+				"          {density(PRD)} = density",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select7",
+				"select7 derive(Deleted = '1',",
+				"          UTCDate = currentUTC('{DateModifiedTalend(ICRIS)}')) ~> derivedColumn3",
+				"derivedColumn3 filter(isNull({Code(ICRIS)})) ~> filter3",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -407,7 +458,13 @@
 				"select6 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateICRISstgProd"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> UpdateICRISstgProd",
+				"filter3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> UPDATEDELETEDRECORDS"
 			]
 		}
 	}
