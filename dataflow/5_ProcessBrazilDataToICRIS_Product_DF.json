@@ -46,7 +46,14 @@
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "InsertICRISstgProductRecords"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateICRISstgProd"
 				}
 			],
 			"transformations": [
@@ -85,6 +92,18 @@
 				},
 				{
 					"name": "aggregate1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "aggregate2"
+				},
+				{
+					"name": "select6"
 				}
 			],
 			"scriptLines": [
@@ -310,30 +329,85 @@
 				"          {id(PRD)},",
 				"          {product_name(PRD)},",
 				"          {type(PRD)},",
+				"          Phase,",
 				"          UseInFormula,",
 				"          Density_Value,",
-				"          DistinctID",
+				"          {Red(ICRISPRD)},",
+				"          {Green(ICRISPRD)},",
+				"          {Blue(ICRISPRD)},",
+				"          Deleted,",
+				"          {last_update(CLR)},",
+				"          {display_id(PRD)}",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select5",
 				"filter1 aggregate(groupBy({id(PRD)},",
 				"          {product_name(PRD)},",
 				"          {type(PRD)},",
+				"          Phase,",
 				"          UseInFormula,",
-				"          Density_Value),",
+				"          Density_Value,",
+				"          {Red(ICRISPRD)},",
+				"          {Green(ICRISPRD)},",
+				"          {Blue(ICRISPRD)},",
+				"          Deleted,",
+				"          {last_update(CLR)},",
+				"          {display_id(PRD)}),",
 				"     DistinctID = first({id(PRD)})) ~> aggregate1",
+				"select4 derive(Deleted = '0') ~> derivedColumn2",
+				"derivedColumn2 filter(!isNull({Code(ICRISPRD)})) ~> filter2",
+				"filter2 aggregate(groupBy({id(PRD)},",
+				"          {product_name(PRD)},",
+				"          {type(PRD)},",
+				"          {Phase(ICRISPRD)},",
+				"          {used_in_formula(PRD)},",
+				"          {Density (g/l)(ICRISPRD)},",
+				"          {Red(ICRISPRD)},",
+				"          {Green(ICRISPRD)},",
+				"          {Blue(ICRISPRD)},",
+				"          Deleted,",
+				"          {last_update(CLR)},",
+				"          {display_id(PRD)}),",
+				"     DistinctIdNotNull = first({id(PRD)})) ~> aggregate2",
+				"aggregate2 select(mapColumn(",
+				"          Code = {id(PRD)},",
+				"          Name = {product_name(PRD)},",
+				"          Type = {type(PRD)},",
+				"          Phase = {Phase(ICRISPRD)},",
+				"          UseInFormula = {used_in_formula(PRD)},",
+				"          Density_G_L = {Density (g/l)(ICRISPRD)},",
+				"          Red = {Red(ICRISPRD)},",
+				"          Green = {Green(ICRISPRD)},",
+				"          Blue = {Blue(ICRISPRD)},",
+				"          Deleted,",
+				"          DateModifiedTalend = {last_update(CLR)},",
+				"          DisplayCode = {display_id(PRD)}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select6",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     mapColumn(",
 				"          {id(PRD)},",
 				"          {product_name(PRD)},",
 				"          {type(PRD)},",
+				"          Phase,",
 				"          UseInFormula,",
 				"          Density_Value,",
-				"          DistinctID",
-				"     )) ~> sink1"
+				"          {Red(ICRISPRD)},",
+				"          {Green(ICRISPRD)},",
+				"          {Blue(ICRISPRD)},",
+				"          Deleted,",
+				"          {last_update(CLR)},",
+				"          {display_id(PRD)}",
+				"     )) ~> InsertICRISstgProductRecords",
+				"select6 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> UpdateICRISstgProd"
 			]
 		}
 	}
