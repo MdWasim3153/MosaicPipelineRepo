@@ -43,6 +43,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "InsertStgColor"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateStgColor"
 				}
 			],
 			"transformations": [
@@ -72,6 +79,12 @@
 				},
 				{
 					"name": "select4"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "select5"
 				}
 			],
 			"scriptLines": [
@@ -273,10 +286,30 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
+				"derivedColumn1 filter(!isNull({StagingId(ICRISCLR)}) && !isNull({source(JSON)})) ~> filter2",
+				"filter2 select(mapColumn(",
+				"          StagingId = {id(CLR)},",
+				"          Code = {universal_code(CLR)},",
+				"          BrandCode = {brand(CLR)},",
+				"          VariantCode = {description(VARI)},",
+				"          Year = {year(CLR)},",
+				"          Name = {color_name(CLR)},",
+				"          Use = NewUse,",
+				"          Deleted = NewDeleted,",
+				"          Effect = {target(JSON)},",
+				"          DateModified,",
+				"          DateModifiedTalend = {last_update(CLR)}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select5",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> InsertStgColor"
+				"     skipDuplicateMapOutputs: true) ~> InsertStgColor",
+				"select5 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> UpdateStgColor"
 			]
 		}
 	}
