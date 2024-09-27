@@ -305,11 +305,13 @@
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> InsertStgColor",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> InsertStgColor",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateStgColor"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> UpdateStgColor"
 			]
 		}
 	}
