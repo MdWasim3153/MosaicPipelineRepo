@@ -497,6 +497,88 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ICRISstgProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Type",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Phase",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "UseInFormula",
+						"type": "bit"
+					},
+					{
+						"name": "Density (g/l)",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "Red",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Green",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Blue",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Deleted",
+						"type": "bit"
+					},
+					{
+						"name": "DateModifiedTalend",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DisplayCode",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ICRIS_stg_Product"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/TableJson')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -774,7 +856,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "UPDATEColor",
+						"fileName": "UpdateFMV",
 						"folderPath": "TEST",
 						"container": "brdata"
 					},
@@ -816,62 +898,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/stgProduct')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "BRSpectro",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "id",
-						"type": "varchar"
-					},
-					{
-						"name": "display_id",
-						"type": "varchar"
-					},
-					{
-						"name": "originated",
-						"type": "varchar"
-					},
-					{
-						"name": "product_name",
-						"type": "varchar"
-					},
-					{
-						"name": "type",
-						"type": "decimal",
-						"precision": 2,
-						"scale": 0
-					},
-					{
-						"name": "used_in_formula",
-						"type": "decimal",
-						"precision": 1,
-						"scale": 0
-					},
-					{
-						"name": "density",
-						"type": "decimal",
-						"precision": 8,
-						"scale": 4
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "stg_Product"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
 			]
 		}
 	]
