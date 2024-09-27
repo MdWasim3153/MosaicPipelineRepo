@@ -1,0 +1,51 @@
+{
+	"name": "FMVConvTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BRSpectro",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "FORMULAMEASUREMENTID",
+				"type": "varchar"
+			},
+			{
+				"name": "TALENDID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "STAGINGID",
+				"type": "varchar"
+			},
+			{
+				"name": "FORMULAMEASUREMENTTALENDID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ANGLE",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "WAVELENGTH__NM_",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "VALUE",
+				"type": "decimal",
+				"precision": 11,
+				"scale": 6
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "FMVConvTable"
+		}
+	}
+}

@@ -23,10 +23,25 @@
 						"referenceName": "ICRISstgFormulaMeasurement",
 						"type": "DatasetReference"
 					},
-					"name": "stgFormulaMeasurement"
+					"name": "ICRISstgFormulaMeasurement"
+				},
+				{
+					"dataset": {
+						"referenceName": "FMVConvTable",
+						"type": "DatasetReference"
+					},
+					"name": "FMVConvTable"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "NewFMV"
+				}
+			],
 			"transformations": [
 				{
 					"name": "join1"
@@ -42,6 +57,18 @@
 				},
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "select3"
 				}
 			],
 			"scriptLines": [
@@ -81,7 +108,20 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> stgFormulaMeasurement",
+				"     format: 'table') ~> ICRISstgFormulaMeasurement",
+				"source(output(",
+				"          FORMULAMEASUREMENTID as string,",
+				"          TALENDID as integer,",
+				"          STAGINGID as string,",
+				"          FORMULAMEASUREMENTTALENDID as integer,",
+				"          ANGLE as integer,",
+				"          WAVELENGTH__NM_ as integer,",
+				"          VALUE as decimal(11,6)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> FMVConvTable",
 				"stgSpectro, stgSpectroMeasurement join(stgSpectro@id == spectro,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
@@ -101,7 +141,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectICRIS",
-				"selectICRIS, stgFormulaMeasurement join({color(SPC)} == StagingId,",
+				"selectICRIS, ICRISstgFormulaMeasurement join({color(SPC)} == StagingId,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -116,7 +156,38 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1 derive(FormulaMeasurementId = '0') ~> derivedColumn1"
+				"join3 derive(FormulaMeasurementId = '0') ~> derivedColumn1",
+				"select1, FMVConvTable join({color(SPC)} == STAGINGID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"derivedColumn1 select(mapColumn(",
+				"          FormulaMeasurementId = derivedColumn1@FormulaMeasurementId,",
+				"          {color(SPC)},",
+				"          {FormulaTalendId(ICRISFRMMMT)},",
+				"          {angle(SPC)},",
+				"          {wavelength(SPCMMT)},",
+				"          {value(SPCMMT)},",
+				"          STAGINGID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 filter(isNull(STAGINGID) && !isNull({FormulaTalendId(ICRISFRMMMT)})) ~> filter1",
+				"filter1 select(mapColumn(",
+				"          FormulaMeasurementId,",
+				"          StagingId = {color(SPC)},",
+				"          FormulaMeasurementTalendId = {FormulaTalendId(ICRISFRMMMT)},",
+				"          Angle = {angle(SPC)},",
+				"          Wavelength_nm_ = {wavelength(SPCMMT)},",
+				"          Value = {value(SPCMMT)}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> NewFMV"
 			]
 		}
 	}

@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "UPDATEColor",
+				"fileName": "NewFMV",
 				"folderPath": "TEST",
 				"container": "brdata"
 			},
