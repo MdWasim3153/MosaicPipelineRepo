@@ -212,11 +212,13 @@
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> NewFMV",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> NewFMV",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateFMV"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> UpdateFMV"
 			]
 		}
 	}
