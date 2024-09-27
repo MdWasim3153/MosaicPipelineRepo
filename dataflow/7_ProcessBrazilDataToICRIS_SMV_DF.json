@@ -40,6 +40,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "NewFMV"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateFMV"
 				}
 			],
 			"transformations": [
@@ -69,6 +76,12 @@
 				},
 				{
 					"name": "select3"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "select4"
 				}
 			],
 			"scriptLines": [
@@ -152,7 +165,8 @@
 				"          {wavelength(SPCMMT)},",
 				"          {value(SPCMMT)},",
 				"          {StagingId(ICRISFRMMMT)} = StagingId,",
-				"          {FormulaTalendId(ICRISFRMMMT)} = FormulaTalendId",
+				"          {FormulaTalendId(ICRISFRMMMT)} = FormulaTalendId,",
+				"          {TalendId(ICRISFRMMMT)} = TalendId",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
@@ -184,10 +198,25 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
+				"join3 filter(!isNull(STAGINGID) && !isNull({TalendId(ICRISFRMMMT)})) ~> filter2",
+				"filter2 select(mapColumn(",
+				"          TalendId = TALENDID,",
+				"          StagingId = {color(SPC)},",
+				"          FormulaMeasurementTalendId = {FormulaTalendId(ICRISFRMMMT)},",
+				"          Value = {value(SPCMMT)},",
+				"          Angle = {angle(SPC)},",
+				"          Wavelength_nm_ = {wavelength(SPCMMT)}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> NewFMV"
+				"     skipDuplicateMapOutputs: true) ~> NewFMV",
+				"select4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> UpdateFMV"
 			]
 		}
 	}
