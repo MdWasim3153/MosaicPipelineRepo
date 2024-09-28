@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "UpdateSing",
+				"fileName": "DeletedRecords",
 				"folderPath": "TEST",
 				"container": "brdata"
 			},

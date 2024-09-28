@@ -34,6 +34,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UpdateSing"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "DeletedRecords"
 				}
 			],
 			"transformations": [
@@ -60,6 +67,15 @@
 				},
 				{
 					"name": "select3"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "select4"
 				}
 			],
 			"scriptLines": [
@@ -123,6 +139,16 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select2 filter(isNull({Id(INICRISBR)})) ~> filter1",
+				"filter1 derive(Deleted = '1',",
+				"          DelDateModTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn3",
+				"derivedColumn3 select(mapColumn(",
+				"          Code = {Code(INICRISBR)},",
+				"          Deleted,",
+				"          DateModifiedTalend = DelDateModTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
 				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -151,7 +177,12 @@
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateSing"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> UpdateSing",
+				"select4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DeletedRecords"
 			]
 		}
 	}
