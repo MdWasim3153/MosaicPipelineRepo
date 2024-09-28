@@ -380,7 +380,8 @@
 				"select7 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DeletedColor"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> DeletedColor"
 			]
 		}
 	}
