@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "UpdateStgColor",
+				"fileName": "DeletedColor",
 				"folderPath": "TEST",
 				"container": "brdata"
 			},

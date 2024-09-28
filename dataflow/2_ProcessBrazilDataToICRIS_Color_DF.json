@@ -50,6 +50,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UpdateStgColor"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "DeletedColor"
 				}
 			],
 			"transformations": [
@@ -85,6 +92,24 @@
 				},
 				{
 					"name": "select5"
+				},
+				{
+					"name": "join6"
+				},
+				{
+					"name": "select6"
+				},
+				{
+					"name": "join7"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "select7"
+				},
+				{
+					"name": "derivedColumn2"
 				}
 			],
 			"scriptLines": [
@@ -302,6 +327,46 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select5",
+				"stgColor, stgVariant join(stgColor@id == color,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join6",
+				"join6 select(mapColumn(",
+				"          {id(CLR)} = stgColor@id,",
+				"          {originated(CLR)} = stgColor@originated,",
+				"          {universal_code(CLR)} = universal_code,",
+				"          {color_name(CLR)} = color_name,",
+				"          {year(CLR)} = year,",
+				"          {version(CLR)} = version,",
+				"          {version_date(CLR)} = version_date,",
+				"          {brand(CLR)} = brand,",
+				"          {effect(CLR)} = effect,",
+				"          {density(CLR)} = density,",
+				"          {last_update(CLR)} = last_update,",
+				"          {id(VARI)} = stgVariant@id,",
+				"          {originated(VARI)} = stgVariant@originated,",
+				"          {color(VARI)} = color,",
+				"          {color_variant(VARI)} = color_variant,",
+				"          {description(VARI)} = description",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select6",
+				"select6, ICRISstgColor join({id(CLR)} == StagingId,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join7",
+				"join7 filter(isNull({id(CLR)})) ~> filter3",
+				"derivedColumn2 select(mapColumn(",
+				"          StagingId,",
+				"          Deleted = NewDeleted,",
+				"          DateModifiedTalend = NewDateModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select7",
+				"filter3 derive(NewDeleted = 'True',",
+				"          NewDateModifiedTalend = currentDate('DateModifiedTalend')) ~> derivedColumn2",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -311,7 +376,11 @@
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2) ~> UpdateStgColor"
+				"     saveOrder: 2) ~> UpdateStgColor",
+				"select7 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DeletedColor"
 			]
 		}
 	}
