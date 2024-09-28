@@ -163,6 +163,62 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/FMVConvTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "FORMULAMEASUREMENTID",
+						"type": "varchar"
+					},
+					{
+						"name": "TALENDID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "STAGINGID",
+						"type": "varchar"
+					},
+					{
+						"name": "FORMULAMEASUREMENTTALENDID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ANGLE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "WAVELENGTH__NM_",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "VALUE",
+						"type": "decimal",
+						"precision": 11,
+						"scale": 6
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "FMVConvTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/BRSpectro')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ICRISStgIngredient')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -856,36 +912,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "UpdateFMV",
-						"folderPath": "TEST",
-						"container": "brdata"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/stgIngredientUpdateData')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "stgIngredientUpdateData",
+						"fileName": "DeletedRecords",
 						"folderPath": "TEST",
 						"container": "brdata"
 					},
