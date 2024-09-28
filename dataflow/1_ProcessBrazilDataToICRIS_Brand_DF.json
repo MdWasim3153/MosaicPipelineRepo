@@ -33,7 +33,7 @@
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "UpdateSing"
+					"name": "UpdateSink"
 				},
 				{
 					"dataset": {
@@ -178,7 +178,7 @@
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2) ~> UpdateSing",
+				"     saveOrder: 2) ~> UpdateSink",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
