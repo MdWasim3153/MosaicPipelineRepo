@@ -18,13 +18,6 @@
 						"type": "DatasetReference"
 					},
 					"name": "ICRISstgBrand"
-				},
-				{
-					"dataset": {
-						"referenceName": "stgBrand",
-						"type": "DatasetReference"
-					},
-					"name": "UpdateStgBrand"
 				}
 			],
 			"sinks": [
@@ -37,10 +30,10 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "ICRISstgBrand",
+						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "UpdateSink"
+					"name": "UpdateSing"
 				}
 			],
 			"transformations": [
@@ -48,31 +41,25 @@
 					"name": "derivedColumn1"
 				},
 				{
-					"name": "filter1"
+					"name": "CodeIsNull"
 				},
 				{
-					"name": "NotNullValues"
+					"name": "SelectingAllValues"
 				},
 				{
 					"name": "select2"
 				},
 				{
-					"name": "updatingStgBrand"
-				},
-				{
 					"name": "join1"
 				},
 				{
-					"name": "select3"
-				},
-				{
-					"name": "filter2"
+					"name": "CodeIsNotNull"
 				},
 				{
 					"name": "derivedColumn2"
 				},
 				{
-					"name": "select4"
+					"name": "select3"
 				}
 			],
 			"scriptLines": [
@@ -96,19 +83,10 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISstgBrand",
-				"source(output(",
-				"          id as string,",
-				"          originated as string,",
-				"          description as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> UpdateStgBrand",
-				"filter1 derive(newId = '0',",
+				"CodeIsNull derive(newId = '0',",
 				"          newDeleted = '0',",
 				"          changedModifiedDate = currentUTC('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn1",
-				"select2 filter(isNull({Code(INICRISBR)})) ~> filter1",
+				"select2 filter(isNull({Code(INICRISBR)})) ~> CodeIsNull",
 				"derivedColumn1 select(mapColumn(",
 				"          {id(INBR)},",
 				"          {description(INBR)},",
@@ -117,7 +95,7 @@
 				"          changedModifiedDate",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> NotNullValues",
+				"     skipDuplicateMapOutputs: true) ~> SelectingAllValues",
 				"join1 select(mapColumn(",
 				"          {id(INBR)} = stgBrand@id,",
 				"          {originated(INBR)} = originated,",
@@ -130,40 +108,22 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
-				"UpdateStgBrand, ICRISstgBrand join(UpdateStgBrand@id == Code,",
-				"     joinType:'left',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> updatingStgBrand",
 				"stgBrand, ICRISstgBrand join(stgBrand@id == Code,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
-				"updatingStgBrand select(mapColumn(",
-				"          {id(UPBR)} = UpdateStgBrand@id,",
-				"          {originated(UPBR)} = originated,",
-				"          {description(UPBR)} = description,",
-				"          {Code(UPICRISBR)} = Code,",
-				"          {Name(UPICRISBR)} = Name,",
-				"          {Deleted(UPICRISBR)} = Deleted,",
-				"          {DateModifiedTalend(UPICRISBR)} = DateModifiedTalend,",
-				"          {Id(UPICRISBR)} = ICRISstgBrand@Id",
+				"select2 filter(!isNull({Code(INICRISBR)})) ~> CodeIsNotNull",
+				"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn2",
+				"derivedColumn2 select(mapColumn(",
+				"          Code = {id(INBR)},",
+				"          Name = {description(INBR)},",
+				"          Deleted = {Deleted(INICRISBR)},",
+				"          DateModifiedTalend = NewDateModifiedTalend",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select3 filter(!isNull({Code(UPICRISBR)})) ~> filter2",
-				"filter2 derive(UPDeleted = '0',",
-				"          UPDatemodifiedTalend = currentUTC('{DateModifiedTalend(UPICRISBR)}')) ~> derivedColumn2",
-				"derivedColumn2 select(mapColumn(",
-				"          {Code(UPICRISBR)},",
-				"          UPDeleted,",
-				"          UPDatemodifiedTalend,",
-				"          {Name(UPICRISBR)}",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select4",
-				"NotNullValues sink(allowSchemaDrift: true,",
+				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          Code as string,",
@@ -188,30 +148,10 @@
 				"          DateModifiedTalend = changedModifiedDate,",
 				"          Id = newId",
 				"     )) ~> InsertSink",
-				"select4 sink(allowSchemaDrift: true,",
+				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     input(",
-				"          Code as string,",
-				"          Name as string,",
-				"          Deleted as boolean,",
-				"          DateModifiedTalend as timestamp,",
-				"          Id as integer",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          Code = {Code(UPICRISBR)},",
-				"          Name = {Name(UPICRISBR)},",
-				"          Deleted = UPDeleted,",
-				"          DateModifiedTalend = UPDatemodifiedTalend",
-				"     )) ~> UpdateSink"
+				"     skipDuplicateMapOutputs: true) ~> UpdateSing"
 			]
 		}
 	}
