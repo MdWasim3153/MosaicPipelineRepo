@@ -858,7 +858,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/3_NTWORKINGProcessBrazilDataToICRIS_Formula_DF')]",
+			"name": "[concat(parameters('factoryName'), '/3_ProcessBrazilDataToICRIS_Formula_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1101,15 +1101,18 @@
 						"select3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> InsertFormula",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1) ~> InsertFormula",
 						"select4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> UpdateFormula",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2) ~> UpdateFormula",
 						"select5 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> DeleteFormula"
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3) ~> DeleteFormula"
 					]
 				}
 			},
@@ -3431,6 +3434,56 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/7_ProcessBrazilDataToICRIS_SMV_DF')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/3_ICRISFormula')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "3_ProcessBrazilDataToICRIS_Formula_DF",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgColor": {},
+									"ICRISstgFormula": {},
+									"stgFormula": {},
+									"InsertFormula": {},
+									"UpdateFormula": {},
+									"DeleteFormula": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/3_ProcessBrazilDataToICRIS_Formula_DF')]"
 			]
 		}
 	]

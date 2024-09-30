@@ -2114,7 +2114,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/3_NTWORKINGProcessBrazilDataToICRIS_Formula_DF')]",
+			"name": "[concat(parameters('factoryName'), '/3_ProcessBrazilDataToICRIS_Formula_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -2357,15 +2357,18 @@
 						"select3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> InsertFormula",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1) ~> InsertFormula",
 						"select4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> UpdateFormula",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2) ~> UpdateFormula",
 						"select5 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> DeleteFormula"
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3) ~> DeleteFormula"
 					]
 				}
 			},
@@ -4390,6 +4393,239 @@
 				"[concat(variables('factoryId'), '/datasets/ICRISstgFormulaMeasurement')]",
 				"[concat(variables('factoryId'), '/datasets/FMVConvTable')]",
 				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/3_ICRISFormula')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "3_ProcessBrazilDataToICRIS_Formula_DF",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgColor": {},
+									"ICRISstgFormula": {},
+									"stgFormula": {},
+									"InsertFormula": {},
+									"UpdateFormula": {},
+									"DeleteFormula": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/3_ProcessBrazilDataToICRIS_Formula_DF')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AllServices')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ICRIS_Brand",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "1_ICRISstgBrand",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Color",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Brand",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "2_ICRISstgColor",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Formula",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Color",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "3_ICRISFormula",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Ingredient",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Product",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "4_ICRISstgIngredient",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Product",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_SMV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "5_ICRISProduct",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Shade",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Formula",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "6_ICRIS_Shade",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_SMV",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Shade",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "7_FMV_DF",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/1_ICRISstgBrand')]",
+				"[concat(variables('factoryId'), '/pipelines/2_ICRISstgColor')]",
+				"[concat(variables('factoryId'), '/pipelines/3_ICRISFormula')]",
+				"[concat(variables('factoryId'), '/pipelines/4_ICRISstgIngredient')]",
+				"[concat(variables('factoryId'), '/pipelines/5_ICRISProduct')]",
+				"[concat(variables('factoryId'), '/pipelines/6_ICRIS_Shade')]",
+				"[concat(variables('factoryId'), '/pipelines/7_FMV_DF')]"
 			]
 		}
 	]
