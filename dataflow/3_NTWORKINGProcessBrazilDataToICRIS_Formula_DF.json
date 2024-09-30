@@ -32,7 +32,7 @@
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "InsertFormula"
 				}
 			],
 			"transformations": [
@@ -196,12 +196,11 @@
 				"          QualityId,",
 				"          UndercoatCode,",
 				"          Deleted,",
-				"          DateCreated = Date_Created,",
-				"          DateModified = Date_Modified,",
-				"          TalendId,",
-				"          DateModifiedTalend = {DateModifiedTalend(INICRISFRM)}",
+				"          Date_Created,",
+				"          Date_Modified,",
+				"          {DateModifiedTalend(INICRISFRM)}",
 				"     ),",
-				"     format: 'table') ~> sink1"
+				"     format: 'table') ~> InsertFormula"
 			]
 		}
 	}
