@@ -359,9 +359,9 @@
 				"     broadcast: 'auto')~> join7",
 				"join7 filter(isNull({id(CLR)})) ~> filter3",
 				"derivedColumn2 select(mapColumn(",
-				"          StagingId,",
-				"          Deleted = NewDeleted,",
-				"          DateModifiedTalend = NewDateModifiedTalend",
+				"          Id,",
+				"          NewDeleted,",
+				"          NewDateModifiedTalend",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select7",
@@ -381,7 +381,12 @@
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 3) ~> DeletedColor"
+				"     saveOrder: 3,",
+				"     mapColumn(",
+				"          Id,",
+				"          Deleted = NewDeleted,",
+				"          DateModifiedTalend = NewDateModifiedTalend",
+				"     )) ~> DeletedColor"
 			]
 		}
 	}
