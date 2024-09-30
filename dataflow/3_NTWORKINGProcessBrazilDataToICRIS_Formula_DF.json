@@ -40,6 +40,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UpdateFormula"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "DeleteFormula"
 				}
 			],
 			"transformations": [
@@ -69,6 +76,15 @@
 				},
 				{
 					"name": "select4"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "select5"
 				}
 			],
 			"scriptLines": [
@@ -203,7 +219,7 @@
 				"          TalendId = {TalendId(INICRISFRM)},",
 				"          StagingId = {color_name(INCLR)},",
 				"          QualityId = {line(INFRM)},",
-				"          UndercoatCode = {undercoat(INFRM)},",
+				"          UndercoatCode = IfUndercoatIsNull,",
 				"          Deleted = {Deleted(INICRISFRM)},",
 				"          DateCreated = newDate_Created,",
 				"          DateModified = newDate_Modified,",
@@ -211,6 +227,16 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
+				"select2 filter(isNull({Id(INICRISFRM)})) ~> filter3",
+				"filter3 derive(TrueDel = '1',",
+				"          DelModifiedTalend = currentDate('{DateModifiedTalend(INICRISFRM)}')) ~> derivedColumn2",
+				"derivedColumn2 select(mapColumn(",
+				"          TalendId = {TalendId(INICRISFRM)},",
+				"          Deleted = TrueDel,",
+				"          DateModifiedTalend = DelModifiedTalend",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select5",
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -218,7 +244,11 @@
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateFormula"
+				"     skipDuplicateMapOutputs: true) ~> UpdateFormula",
+				"select5 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DeleteFormula"
 			]
 		}
 	}

@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "UpdateFormula",
+				"fileName": "DeleteFormula",
 				"folderPath": "TEST",
 				"container": "brdata"
 			},
