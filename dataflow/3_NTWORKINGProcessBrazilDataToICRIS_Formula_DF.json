@@ -188,19 +188,7 @@
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     mapColumn(",
-				"          Id,",
-				"          ColorId,",
-				"          StagingId,",
-				"          QualityId,",
-				"          UndercoatCode,",
-				"          Deleted,",
-				"          Date_Created,",
-				"          Date_Modified,",
-				"          {DateModifiedTalend(INICRISFRM)}",
-				"     ),",
-				"     format: 'table') ~> InsertFormula"
+				"     skipDuplicateMapOutputs: true) ~> InsertFormula"
 			]
 		}
 	}
