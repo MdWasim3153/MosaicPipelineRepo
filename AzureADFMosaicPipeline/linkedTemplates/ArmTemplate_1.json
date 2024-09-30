@@ -890,10 +890,24 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "ICRISstgFormula",
+								"referenceName": "stgIngredientTempData",
 								"type": "DatasetReference"
 							},
-							"name": "sink1"
+							"name": "InsertFormula"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredientTempData",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateFormula"
+						},
+						{
+							"dataset": {
+								"referenceName": "stgIngredientTempData",
+								"type": "DatasetReference"
+							},
+							"name": "DeleteFormula"
 						}
 					],
 					"transformations": [
@@ -917,6 +931,21 @@
 						},
 						{
 							"name": "select3"
+						},
+						{
+							"name": "filter2"
+						},
+						{
+							"name": "select4"
+						},
+						{
+							"name": "filter3"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "select5"
 						}
 					],
 					"scriptLines": [
@@ -996,11 +1025,12 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select1",
-						"select2 derive(Date_Created = iif(equals(toString({version_date(INCLR)}), '0001-01-01'), '1900-01-01', toString({version_date(INCLR)})),",
-						"          Date_Modified = iif(equals(toString({version_date(INCLR)}), '0001-01-01'),     toDate('1900-01-01'),     {version_date(INCLR)}),",
+						"select2 derive(newDate_Created = iif(equals(toString({version_date(INCLR)}), '0001-01-01'), '1900-01-01', toString({version_date(INCLR)})),",
+						"          newDate_Modified = iif(equals(toString({version_date(INCLR)}), '0001-01-01'),     toDate('1900-01-01'),     {version_date(INCLR)}),",
 						"          newId = '0',",
-						"          newColorId = '0') ~> derivedColumn1",
-						"derivedColumn1 filter(isNull(Date_Created)&&isNull({StagingId(INICRISFRM)})) ~> filter1",
+						"          newColorId = '0',",
+						"          IfUndercoatIsNull = iif(isNull({undercoat(INFRM)}),'',{undercoat(INFRM)})) ~> derivedColumn1",
+						"derivedColumn1 filter(isNull({StagingId(INICRISFRM)})) ~> filter1",
 						"joinICRISFormula select(mapColumn(",
 						"          {id(INCLR)},",
 						"          {originated(INCLR)},",
@@ -1033,53 +1063,53 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select2",
 						"filter1 select(mapColumn(",
-						"          {Id(INICRISFRM)} = newId,",
-						"          {ColorId(INICRISFRM)} = newColorId,",
-						"          {StagingId(INICRISFRM)},",
-						"          {QualityId(INICRISFRM)},",
-						"          {UndercoatCode(INICRISFRM)},",
-						"          {Deleted(INICRISFRM)},",
-						"          Date_Created,",
-						"          Date_Modified,",
-						"          {TalendId(INICRISFRM)},",
-						"          {DateModifiedTalend(INICRISFRM)}",
+						"          Id = newId,",
+						"          ColorId = newColorId,",
+						"          StagingId = {StagingId(INICRISFRM)},",
+						"          QualityId = {QualityId(INICRISFRM)},",
+						"          UndercoatCode = IfUndercoatIsNull,",
+						"          Deleted = {Deleted(INICRISFRM)},",
+						"          Date_Created = newDate_Created,",
+						"          Date_Modified = newDate_Modified,",
+						"          {DateModifiedTalend(INICRISFRM)} = {last_update(INCLR)}",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select3",
+						"derivedColumn1 filter(!isNull({StagingId(INICRISFRM)})) ~> filter2",
+						"filter2 select(mapColumn(",
+						"          TalendId = {TalendId(INICRISFRM)},",
+						"          StagingId = {color_name(INCLR)},",
+						"          QualityId = {line(INFRM)},",
+						"          UndercoatCode = IfUndercoatIsNull,",
+						"          Deleted = {Deleted(INICRISFRM)},",
+						"          DateCreated = newDate_Created,",
+						"          DateModified = newDate_Modified,",
+						"          DateModifiedTalend = {last_update(INCLR)}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select4",
+						"select2 filter(isNull({Id(INICRISFRM)})) ~> filter3",
+						"filter3 derive(TrueDel = '1',",
+						"          DelModifiedTalend = currentDate('{DateModifiedTalend(INICRISFRM)}')) ~> derivedColumn2",
+						"derivedColumn2 select(mapColumn(",
+						"          TalendId = {TalendId(INICRISFRM)},",
+						"          Deleted = TrueDel,",
+						"          DateModifiedTalend = DelModifiedTalend",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select5",
 						"select3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     input(",
-						"          Id as integer,",
-						"          TalendId as integer,",
-						"          ColorId as integer,",
-						"          StagingId as string,",
-						"          QualityId as string,",
-						"          UndercoatCode as string,",
-						"          Deleted as boolean,",
-						"          DateCreated as timestamp,",
-						"          DateModified as timestamp,",
-						"          DateModifiedTalend as timestamp",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          Id = {Id(INICRISFRM)},",
-						"          ColorId = {ColorId(INICRISFRM)},",
-						"          StagingId = {StagingId(INICRISFRM)},",
-						"          QualityId = {QualityId(INICRISFRM)},",
-						"          UndercoatCode = {UndercoatCode(INICRISFRM)},",
-						"          Deleted = {Deleted(INICRISFRM)},",
-						"          DateCreated = Date_Created,",
-						"          DateModified = Date_Modified,",
-						"          TalendId = {TalendId(INICRISFRM)},",
-						"          DateModifiedTalend = {DateModifiedTalend(INICRISFRM)}",
-						"     )) ~> sink1"
+						"     skipDuplicateMapOutputs: true) ~> InsertFormula",
+						"select4 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> UpdateFormula",
+						"select5 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> DeleteFormula"
 					]
 				}
 			},

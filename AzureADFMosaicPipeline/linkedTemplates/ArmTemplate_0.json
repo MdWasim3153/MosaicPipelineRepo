@@ -912,7 +912,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "DeletedRecords",
+						"fileName": "DeleteFormula",
 						"folderPath": "TEST",
 						"container": "brdata"
 					},
