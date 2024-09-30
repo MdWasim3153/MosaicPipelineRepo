@@ -33,6 +33,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "InsertFormula"
+				},
+				{
+					"dataset": {
+						"referenceName": "stgIngredientTempData",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateFormula"
 				}
 			],
 			"transformations": [
@@ -56,6 +63,12 @@
 				},
 				{
 					"name": "select3"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "select4"
 				}
 			],
 			"scriptLines": [
@@ -185,10 +198,27 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
+				"derivedColumn1 filter(!isNull({StagingId(INICRISFRM)})) ~> filter2",
+				"filter2 select(mapColumn(",
+				"          TalendId = {TalendId(INICRISFRM)},",
+				"          StagingId = {color_name(INCLR)},",
+				"          QualityId = {line(INFRM)},",
+				"          UndercoatCode = {undercoat(INFRM)},",
+				"          Deleted = {Deleted(INICRISFRM)},",
+				"          DateCreated = newDate_Created,",
+				"          DateModified = newDate_Modified,",
+				"          DateModifiedTalend = {last_update(INCLR)}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> InsertFormula"
+				"     skipDuplicateMapOutputs: true) ~> InsertFormula",
+				"select4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> UpdateFormula"
 			]
 		}
 	}
