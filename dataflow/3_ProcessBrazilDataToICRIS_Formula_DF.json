@@ -240,15 +240,18 @@
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> InsertFormula",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> InsertFormula",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateFormula",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> UpdateFormula",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DeleteFormula"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> DeleteFormula"
 			]
 		}
 	}
