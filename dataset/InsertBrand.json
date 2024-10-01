@@ -10,8 +10,9 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "InsertBrand",
-				"container": "recordsreceived"
+				"fileName": "insert",
+				"folderPath": "Destination",
+				"container": "recordsreceived1"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
