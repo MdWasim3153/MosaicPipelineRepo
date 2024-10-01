@@ -23,13 +23,6 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "stgIngredientTempData",
-						"type": "DatasetReference"
-					},
-					"name": "DeletedRecords"
-				},
-				{
-					"dataset": {
 						"referenceName": "InsertBrand",
 						"type": "DatasetReference"
 					},
@@ -41,6 +34,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UpdateBrand"
+				},
+				{
+					"dataset": {
+						"referenceName": "InsertBrand",
+						"type": "DatasetReference"
+					},
+					"name": "DeleteBrand"
 				}
 			],
 			"transformations": [
@@ -151,11 +151,6 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
-				"select4 sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1) ~> DeletedRecords",
 				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -163,7 +158,11 @@
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateBrand"
+				"     skipDuplicateMapOutputs: true) ~> UpdateBrand",
+				"select4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DeleteBrand"
 			]
 		}
 	}
