@@ -95,8 +95,8 @@
 									"stgBrand": {},
 									"ICRISstgBrand": {},
 									"InsertBrand": {},
-									"UpdateBrand": {},
-									"DeleteBrand": {}
+									"DeleteBrand": {},
+									"Update": {}
 								}
 							},
 							"staging": {},
@@ -1789,14 +1789,14 @@
 								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "UpdateBrand"
+							"name": "DeleteBrand"
 						},
 						{
 							"dataset": {
 								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "DeleteBrand"
+							"name": "Update"
 						}
 					],
 					"transformations": [
@@ -1912,16 +1912,15 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 1) ~> InsertBrand",
-						"select3 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 2) ~> UpdateBrand",
 						"select4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 3) ~> DeleteBrand"
+						"     saveOrder: 2) ~> DeleteBrand",
+						"select3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Update"
 					]
 				}
 			},
@@ -4629,8 +4628,9 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "InsertBrand",
-						"container": "recordsreceived"
+						"fileName": "delete",
+						"folderPath": "Destination",
+						"container": "recordsreceived1"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
