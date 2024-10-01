@@ -285,8 +285,8 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "UpdateBrand.csv",
-						"container": "datarecords"
+						"fileName": "InsertBrand",
+						"container": "recordsreceived"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
