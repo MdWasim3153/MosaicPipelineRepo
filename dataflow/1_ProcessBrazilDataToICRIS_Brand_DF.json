@@ -23,13 +23,6 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ICRISstgBrand",
-						"type": "DatasetReference"
-					},
-					"name": "InsertSink"
-				},
-				{
-					"dataset": {
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
@@ -41,6 +34,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "DeletedRecords"
+				},
+				{
+					"dataset": {
+						"referenceName": "InsertBrand",
+						"type": "DatasetReference"
+					},
+					"name": "InsertBrand"
 				}
 			],
 			"transformations": [
@@ -151,36 +151,11 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
-				"SelectingAllValues sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     input(",
-				"          Code as string,",
-				"          Name as string,",
-				"          Deleted as boolean,",
-				"          DateModifiedTalend as timestamp,",
-				"          Id as integer",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     format: 'table',",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          Id = newId,",
-				"          Code = {id(INBR)},",
-				"          Name = {description(INBR)},",
-				"          Deleted = newDeleted,",
-				"          DateModifiedTalend = changedModifiedDate",
-				"     )) ~> InsertSink",
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2,",
+				"     saveOrder: 1,",
 				"     mapColumn(",
 				"          Id,",
 				"          Name,",
@@ -191,7 +166,11 @@
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 3) ~> DeletedRecords"
+				"     saveOrder: 2) ~> DeletedRecords",
+				"SelectingAllValues sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> InsertBrand"
 			]
 		}
 	}
