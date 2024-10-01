@@ -141,7 +141,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select2 filter(isNull({Id(INICRISBR)})) ~> filter1",
+				"select2 filter(isNull({id(INBR)})) ~> filter1",
 				"filter1 derive(Deleted = '1',",
 				"          DelDateModTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn3",
 				"derivedColumn3 select(mapColumn(",
