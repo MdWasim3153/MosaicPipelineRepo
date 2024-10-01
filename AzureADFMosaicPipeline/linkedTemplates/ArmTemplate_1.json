@@ -272,6 +272,32 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/InsertBrand')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "UpdateBrand.csv",
+						"container": "datarecords"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/1_ProcessBrazilDataToICRIS_Brand_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -298,24 +324,24 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "ICRISstgBrand",
+								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "InsertSink"
+							"name": "InsertBrand"
 						},
 						{
 							"dataset": {
-								"referenceName": "stgIngredientTempData",
+								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "UpdateSink"
+							"name": "UpdateBrand"
 						},
 						{
 							"dataset": {
-								"referenceName": "stgIngredientTempData",
+								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "DeletedRecords"
+							"name": "DeleteBrand"
 						}
 					],
 					"transformations": [
@@ -381,6 +407,7 @@
 						"derivedColumn1 select(mapColumn(",
 						"          {id(INBR)},",
 						"          {description(INBR)},",
+						"          {DateModifiedTalend(INICRISBR)},",
 						"          newId,",
 						"          newDeleted,",
 						"          changedModifiedDate",
@@ -405,16 +432,17 @@
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> join1",
 						"select2 filter(!isNull({Code(INICRISBR)})) ~> CodeIsNotNull",
-						"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn2",
+						"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}'),",
+						"          NewDeleted = '0') ~> derivedColumn2",
 						"derivedColumn2 select(mapColumn(",
-						"          Code = {id(INBR)},",
+						"          Id = {id(INBR)},",
 						"          Name = {description(INBR)},",
-						"          Deleted = {Deleted(INICRISBR)},",
-						"          DateModifiedTalend = NewDateModifiedTalend",
+						"          Deleted = NewDeleted,",
+						"          {DateModifiedTalend(INICRISBR)} = NewDateModifiedTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select3",
-						"select2 filter(isNull({Id(INICRISBR)})) ~> filter1",
+						"select2 filter(isNull({id(INBR)})) ~> filter1",
 						"filter1 derive(Deleted = '1',",
 						"          DelDateModTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn3",
 						"derivedColumn3 select(mapColumn(",
@@ -426,43 +454,25 @@
 						"     skipDuplicateMapOutputs: true) ~> select4",
 						"SelectingAllValues sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     input(",
-						"          Code as string,",
-						"          Name as string,",
-						"          Deleted as boolean,",
-						"          DateModifiedTalend as timestamp,",
-						"          Id as integer",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 1,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          Code = {id(INBR)},",
-						"          Name = {description(INBR)},",
-						"          Deleted = newDeleted,",
-						"          DateModifiedTalend = changedModifiedDate,",
-						"          Id = newId",
-						"     )) ~> InsertSink",
+						"     saveOrder: 1) ~> InsertBrand",
 						"select3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 2) ~> UpdateSink",
+						"     saveOrder: 2) ~> UpdateBrand",
 						"select4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 3) ~> DeletedRecords"
+						"     saveOrder: 3) ~> DeleteBrand"
 					]
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/InsertBrand')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color_DF')]",
@@ -827,9 +837,9 @@
 						"     broadcast: 'auto')~> join7",
 						"join7 filter(isNull({id(CLR)})) ~> filter3",
 						"derivedColumn2 select(mapColumn(",
-						"          StagingId,",
-						"          Deleted = NewDeleted,",
-						"          DateModifiedTalend = NewDateModifiedTalend",
+						"          Id,",
+						"          NewDeleted,",
+						"          NewDateModifiedTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select7",
@@ -849,7 +859,12 @@
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 3) ~> DeletedColor"
+						"     saveOrder: 3,",
+						"     mapColumn(",
+						"          Id,",
+						"          Deleted = NewDeleted,",
+						"          DateModifiedTalend = NewDateModifiedTalend",
+						"     )) ~> DeletedColor"
 					]
 				}
 			},
@@ -3141,9 +3156,9 @@
 								"datasetParameters": {
 									"stgBrand": {},
 									"ICRISstgBrand": {},
-									"InsertSink": {},
-									"UpdateSink": {},
-									"DeletedRecords": {}
+									"InsertBrand": {},
+									"UpdateBrand": {},
+									"DeleteBrand": {}
 								}
 							},
 							"staging": {},
@@ -3219,6 +3234,56 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/2_ProcessBrazilDataToICRIS_Color_DF')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/3_ICRISFormula')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "3_ProcessBrazilDataToICRIS_Formula_DF",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgColor": {},
+									"ICRISstgFormula": {},
+									"stgFormula": {},
+									"InsertFormula": {},
+									"UpdateFormula": {},
+									"DeleteFormula": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/3_ProcessBrazilDataToICRIS_Formula_DF')]"
 			]
 		},
 		{
@@ -3384,106 +3449,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/6_ProcessBrazilDataToICRIS_Shade_DF')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/7_FMV_DF')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "7_ProcessBrazilDataToICRIS_SMV_DF",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "7_ProcessBrazilDataToICRIS_SMV_DF",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"stgSpectro": {},
-									"stgSpectroMeasurement": {},
-									"ICRISstgFormulaMeasurement": {},
-									"FMVConvTable": {},
-									"NewFMV": {},
-									"UpdateFMV": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/7_ProcessBrazilDataToICRIS_SMV_DF')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/3_ICRISFormula')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "3_ProcessBrazilDataToICRIS_Formula_DF",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"stgColor": {},
-									"ICRISstgFormula": {},
-									"stgFormula": {},
-									"InsertFormula": {},
-									"UpdateFormula": {},
-									"DeleteFormula": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/3_ProcessBrazilDataToICRIS_Formula_DF')]"
 			]
 		}
 	]

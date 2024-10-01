@@ -94,9 +94,9 @@
 								"datasetParameters": {
 									"stgBrand": {},
 									"ICRISstgBrand": {},
-									"InsertSink": {},
-									"UpdateSink": {},
-									"DeletedRecords": {}
+									"InsertBrand": {},
+									"UpdateBrand": {},
+									"DeleteBrand": {}
 								}
 							},
 							"staging": {},
@@ -172,6 +172,56 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/2_ProcessBrazilDataToICRIS_Color_DF')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/3_ICRISFormula')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "3_ProcessBrazilDataToICRIS_Formula_DF",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgColor": {},
+									"ICRISstgFormula": {},
+									"stgFormula": {},
+									"InsertFormula": {},
+									"UpdateFormula": {},
+									"DeleteFormula": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/3_ProcessBrazilDataToICRIS_Formula_DF')]"
 			]
 		},
 		{
@@ -387,6 +437,189 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/7_ProcessBrazilDataToICRIS_SMV_DF')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AllServices')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ICRIS_Brand",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "1_ICRISstgBrand",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Color",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Brand",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "2_ICRISstgColor",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Formula",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Color",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "3_ICRISFormula",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Ingredient",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Product",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "4_ICRISstgIngredient",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Product",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_SMV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "5_ICRISProduct",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_Shade",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Formula",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "6_ICRIS_Shade",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "ICRIS_SMV",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ICRIS_Shade",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "7_FMV_DF",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/1_ICRISstgBrand')]",
+				"[concat(variables('factoryId'), '/pipelines/2_ICRISstgColor')]",
+				"[concat(variables('factoryId'), '/pipelines/3_ICRISFormula')]",
+				"[concat(variables('factoryId'), '/pipelines/4_ICRISstgIngredient')]",
+				"[concat(variables('factoryId'), '/pipelines/5_ICRISProduct')]",
+				"[concat(variables('factoryId'), '/pipelines/6_ICRIS_Shade')]",
+				"[concat(variables('factoryId'), '/pipelines/7_FMV_DF')]"
 			]
 		},
 		{
@@ -1546,24 +1779,24 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "ICRISstgBrand",
+								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "InsertSink"
+							"name": "InsertBrand"
 						},
 						{
 							"dataset": {
-								"referenceName": "stgIngredientTempData",
+								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "UpdateSink"
+							"name": "UpdateBrand"
 						},
 						{
 							"dataset": {
-								"referenceName": "stgIngredientTempData",
+								"referenceName": "InsertBrand",
 								"type": "DatasetReference"
 							},
-							"name": "DeletedRecords"
+							"name": "DeleteBrand"
 						}
 					],
 					"transformations": [
@@ -1629,6 +1862,7 @@
 						"derivedColumn1 select(mapColumn(",
 						"          {id(INBR)},",
 						"          {description(INBR)},",
+						"          {DateModifiedTalend(INICRISBR)},",
 						"          newId,",
 						"          newDeleted,",
 						"          changedModifiedDate",
@@ -1653,16 +1887,17 @@
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> join1",
 						"select2 filter(!isNull({Code(INICRISBR)})) ~> CodeIsNotNull",
-						"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn2",
+						"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}'),",
+						"          NewDeleted = '0') ~> derivedColumn2",
 						"derivedColumn2 select(mapColumn(",
-						"          Code = {id(INBR)},",
+						"          Id = {id(INBR)},",
 						"          Name = {description(INBR)},",
-						"          Deleted = {Deleted(INICRISBR)},",
-						"          DateModifiedTalend = NewDateModifiedTalend",
+						"          Deleted = NewDeleted,",
+						"          {DateModifiedTalend(INICRISBR)} = NewDateModifiedTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select3",
-						"select2 filter(isNull({Id(INICRISBR)})) ~> filter1",
+						"select2 filter(isNull({id(INBR)})) ~> filter1",
 						"filter1 derive(Deleted = '1',",
 						"          DelDateModTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn3",
 						"derivedColumn3 select(mapColumn(",
@@ -1674,46 +1909,26 @@
 						"     skipDuplicateMapOutputs: true) ~> select4",
 						"SelectingAllValues sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     input(",
-						"          Code as string,",
-						"          Name as string,",
-						"          Deleted as boolean,",
-						"          DateModifiedTalend as timestamp,",
-						"          Id as integer",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 1,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          Code = {id(INBR)},",
-						"          Name = {description(INBR)},",
-						"          Deleted = newDeleted,",
-						"          DateModifiedTalend = changedModifiedDate,",
-						"          Id = newId",
-						"     )) ~> InsertSink",
+						"     saveOrder: 1) ~> InsertBrand",
 						"select3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 2) ~> UpdateSink",
+						"     saveOrder: 2) ~> UpdateBrand",
 						"select4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 3) ~> DeletedRecords"
+						"     saveOrder: 3) ~> DeleteBrand"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/stgBrand')]",
 				"[concat(variables('factoryId'), '/datasets/ICRISstgBrand')]",
-				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
+				"[concat(variables('factoryId'), '/datasets/InsertBrand')]"
 			]
 		},
 		{
@@ -2079,9 +2294,9 @@
 						"     broadcast: 'auto')~> join7",
 						"join7 filter(isNull({id(CLR)})) ~> filter3",
 						"derivedColumn2 select(mapColumn(",
-						"          StagingId,",
-						"          Deleted = NewDeleted,",
-						"          DateModifiedTalend = NewDateModifiedTalend",
+						"          Id,",
+						"          NewDeleted,",
+						"          NewDateModifiedTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select7",
@@ -2101,7 +2316,12 @@
 						"     validateSchema: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 3) ~> DeletedColor"
+						"     saveOrder: 3,",
+						"     mapColumn(",
+						"          Id,",
+						"          Deleted = NewDeleted,",
+						"          DateModifiedTalend = NewDateModifiedTalend",
+						"     )) ~> DeletedColor"
 					]
 				}
 			},
@@ -4396,236 +4616,31 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/3_ICRISFormula')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
+			"name": "[concat(parameters('factoryName'), '/InsertBrand')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"activities": [
-					{
-						"name": "3_ProcessBrazilDataToICRIS_Formula_DF",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "3_ProcessBrazilDataToICRIS_Formula_DF",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"stgColor": {},
-									"ICRISstgFormula": {},
-									"stgFormula": {},
-									"InsertFormula": {},
-									"UpdateFormula": {},
-									"DeleteFormula": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
 				},
-				"annotations": []
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "UpdateBrand.csv",
+						"container": "datarecords"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/3_ProcessBrazilDataToICRIS_Formula_DF')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AllServices')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "ICRIS_Brand",
-						"type": "ExecutePipeline",
-						"dependsOn": [],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "1_ICRISstgBrand",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "ICRIS_Color",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "ICRIS_Brand",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "2_ICRISstgColor",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "ICRIS_Formula",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "ICRIS_Color",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "3_ICRISFormula",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "ICRIS_Ingredient",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "ICRIS_Product",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "4_ICRISstgIngredient",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "ICRIS_Product",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "ICRIS_SMV",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "5_ICRISProduct",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "ICRIS_Shade",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "ICRIS_Formula",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "6_ICRIS_Shade",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "ICRIS_SMV",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "ICRIS_Shade",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "7_FMV_DF",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/1_ICRISstgBrand')]",
-				"[concat(variables('factoryId'), '/pipelines/2_ICRISstgColor')]",
-				"[concat(variables('factoryId'), '/pipelines/3_ICRISFormula')]",
-				"[concat(variables('factoryId'), '/pipelines/4_ICRISstgIngredient')]",
-				"[concat(variables('factoryId'), '/pipelines/5_ICRISProduct')]",
-				"[concat(variables('factoryId'), '/pipelines/6_ICRIS_Shade')]",
-				"[concat(variables('factoryId'), '/pipelines/7_FMV_DF')]"
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		}
 	]
