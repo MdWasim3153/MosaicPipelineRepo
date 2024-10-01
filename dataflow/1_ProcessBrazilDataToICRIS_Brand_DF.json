@@ -26,13 +26,6 @@
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "UpdateSink"
-				},
-				{
-					"dataset": {
-						"referenceName": "stgIngredientTempData",
-						"type": "DatasetReference"
-					},
 					"name": "DeletedRecords"
 				},
 				{
@@ -41,6 +34,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "InsertBrand"
+				},
+				{
+					"dataset": {
+						"referenceName": "InsertBrand",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateBrand"
 				}
 			],
 			"transformations": [
@@ -151,26 +151,19 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
-				"select3 sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1,",
-				"     mapColumn(",
-				"          Id,",
-				"          Name,",
-				"          Deleted,",
-				"          DateModifiedTalend = {DateModifiedTalend(INICRISBR)}",
-				"     )) ~> UpdateSink",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2) ~> DeletedRecords",
+				"     saveOrder: 1) ~> DeletedRecords",
 				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> InsertBrand"
+				"     skipDuplicateMapOutputs: true) ~> InsertBrand",
+				"select3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> UpdateBrand"
 			]
 		}
 	}

@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "InsertBrand.csv",
+				"fileName": "UpdateBrand.csv",
 				"container": "datarecords"
 			},
 			"columnDelimiter": ",",
