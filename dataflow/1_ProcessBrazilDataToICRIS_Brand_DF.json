@@ -154,15 +154,18 @@
 				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> InsertBrand",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> InsertBrand",
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateBrand",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> UpdateBrand",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DeleteBrand"
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> DeleteBrand"
 			]
 		}
 	}
