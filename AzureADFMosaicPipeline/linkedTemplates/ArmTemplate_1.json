@@ -362,9 +362,6 @@
 							"name": "join1"
 						},
 						{
-							"name": "CodeIsNotNull"
-						},
-						{
 							"name": "derivedColumn2"
 						},
 						{
@@ -378,6 +375,9 @@
 						},
 						{
 							"name": "select4"
+						},
+						{
+							"name": "alterRow1"
 						}
 					],
 					"scriptLines": [
@@ -432,8 +432,7 @@
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> join1",
-						"select2 filter(!isNull({Code(INICRISBR)})) ~> CodeIsNotNull",
-						"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}'),",
+						"alterRow1 derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}'),",
 						"          NewDeleted = '0') ~> derivedColumn2",
 						"derivedColumn2 select(mapColumn(",
 						"          Id = {id(INBR)},",
@@ -453,6 +452,7 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select4",
+						"select2 alterRow(updateIf(isNull({Code(INICRISBR)}))) ~> alterRow1",
 						"SelectingAllValues sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -469,6 +469,7 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
 						"     errorHandlingOption: 'stopOnFirstError',",
 						"     mapColumn(",
 						"          Id = newId,",
@@ -487,12 +488,14 @@
 						"          Id as integer",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
 						"     upsertable:false,",
+						"     keys:['Code'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2,",
 						"     errorHandlingOption: 'stopOnFirstError',",
 						"     mapColumn(",
 						"          Code = Id,",
@@ -516,6 +519,7 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3,",
 						"     errorHandlingOption: 'stopOnFirstError',",
 						"     mapColumn(",
 						"          Code,",
@@ -3223,8 +3227,8 @@
 							},
 							"staging": {},
 							"compute": {
-								"coreCount": 16,
-								"computeType": "General"
+								"coreCount": 32,
+								"computeType": "MemoryOptimized"
 							},
 							"traceLevel": "Fine"
 						}
