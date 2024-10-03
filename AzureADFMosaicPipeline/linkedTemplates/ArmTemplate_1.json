@@ -29,6 +29,33 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/stgIngredientTempData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "DeleteFormula",
+						"folderPath": "TEST",
+						"container": "brdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/stgIngredientUpdateData')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -272,33 +299,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/InsertBrand')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "delete",
-						"folderPath": "Destination",
-						"container": "recordsreceived1"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/1_ProcessBrazilDataToICRIS_Brand_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -325,24 +325,24 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "InsertBrand",
+								"referenceName": "ICRISstgBrand",
 								"type": "DatasetReference"
 							},
 							"name": "InsertBrand"
 						},
 						{
 							"dataset": {
-								"referenceName": "InsertBrand",
+								"referenceName": "ICRISstgBrand",
 								"type": "DatasetReference"
 							},
-							"name": "DeleteBrand"
+							"name": "UpdateBrand"
 						},
 						{
 							"dataset": {
-								"referenceName": "InsertBrand",
+								"referenceName": "ICRISstgBrand",
 								"type": "DatasetReference"
 							},
-							"name": "Update"
+							"name": "DeleteBrand"
 						}
 					],
 					"transformations": [
@@ -443,36 +443,89 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select3",
-						"select2 filter(isNull({id(INBR)})) ~> filter1",
-						"filter1 derive(Deleted = '1',",
+						"select2 filter(isNull({id(INBR)}) || {id(INBR)} == '') ~> filter1",
+						"filter1 derive(NewDeleted = '1',",
 						"          DelDateModTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn3",
 						"derivedColumn3 select(mapColumn(",
 						"          Code = {Code(INICRISBR)},",
-						"          Deleted,",
+						"          Deleted = NewDeleted,",
 						"          DateModifiedTalend = DelDateModTalend",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select4",
 						"SelectingAllValues sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 1) ~> InsertBrand",
-						"select4 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 2) ~> DeleteBrand",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Id = newId,",
+						"          Code = {id(INBR)},",
+						"          Name = {description(INBR)},",
+						"          Deleted = newDeleted,",
+						"          DateModifiedTalend = changedModifiedDate",
+						"     )) ~> InsertBrand",
 						"select3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> Update"
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Code = Id,",
+						"          Name,",
+						"          Deleted,",
+						"          DateModifiedTalend = {DateModifiedTalend(INICRISBR)}",
+						"     )) ~> UpdateBrand",
+						"select4 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Code as string,",
+						"          Name as string,",
+						"          Deleted as boolean,",
+						"          DateModifiedTalend as timestamp,",
+						"          Id as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Code,",
+						"          Deleted,",
+						"          DateModifiedTalend",
+						"     )) ~> DeleteBrand"
 					]
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/InsertBrand')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/2_ProcessBrazilDataToICRIS_Color_DF')]",
@@ -869,7 +922,8 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/stgVariant')]"
+				"[concat(variables('factoryId'), '/datasets/stgVariant')]",
+				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
 			]
 		},
 		{
@@ -1131,7 +1185,9 @@
 					]
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/4_ProcessBrazilDataToICRIS_Ingredient_DF')]",
@@ -1853,6 +1909,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/stgProduct')]",
+				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]",
 				"[concat(variables('factoryId'), '/datasets/stgIngredientUpdateData')]"
 			]
 		},
@@ -2400,7 +2457,8 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/stgProduct')]"
+				"[concat(variables('factoryId'), '/datasets/stgProduct')]",
+				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
 			]
 		},
 		{
@@ -2896,7 +2954,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/stgSpectro')]",
-				"[concat(variables('factoryId'), '/datasets/stgVariant')]"
+				"[concat(variables('factoryId'), '/datasets/stgVariant')]",
+				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
 			]
 		},
 		{
@@ -3127,7 +3186,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/stgSpectro')]",
-				"[concat(variables('factoryId'), '/datasets/stgSpectroMeasurement')]"
+				"[concat(variables('factoryId'), '/datasets/stgSpectroMeasurement')]",
+				"[concat(variables('factoryId'), '/datasets/stgIngredientTempData')]"
 			]
 		},
 		{
@@ -3137,7 +3197,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "PL1_DF",
+						"name": "1_ProcessBrazilDataToICRIS_Brand_DF",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -3157,13 +3217,13 @@
 									"stgBrand": {},
 									"ICRISstgBrand": {},
 									"InsertBrand": {},
-									"DeleteBrand": {},
-									"Update": {}
+									"UpdateBrand": {},
+									"DeleteBrand": {}
 								}
 							},
 							"staging": {},
 							"compute": {
-								"coreCount": 8,
+								"coreCount": 16,
 								"computeType": "General"
 							},
 							"traceLevel": "Fine"
