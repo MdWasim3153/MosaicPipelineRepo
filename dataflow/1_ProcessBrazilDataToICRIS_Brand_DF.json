@@ -60,9 +60,6 @@
 					"name": "join1"
 				},
 				{
-					"name": "CodeIsNotNull"
-				},
-				{
 					"name": "derivedColumn2"
 				},
 				{
@@ -76,6 +73,9 @@
 				},
 				{
 					"name": "select4"
+				},
+				{
+					"name": "alterRow1"
 				}
 			],
 			"scriptLines": [
@@ -130,8 +130,7 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
-				"select2 filter(!isNull({Code(INICRISBR)})) ~> CodeIsNotNull",
-				"CodeIsNotNull derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}'),",
+				"alterRow1 derive(NewDateModifiedTalend = currentDate('{DateModifiedTalend(INICRISBR)}'),",
 				"          NewDeleted = '0') ~> derivedColumn2",
 				"derivedColumn2 select(mapColumn(",
 				"          Id = {id(INBR)},",
@@ -151,6 +150,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
+				"select2 alterRow(updateIf(isNull({Code(INICRISBR)}))) ~> alterRow1",
 				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -185,10 +185,11 @@
 				"          DateModifiedTalend as timestamp,",
 				"          Id as integer",
 				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
+				"     deletable:true,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:true,",
+				"     keys:['Code'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
