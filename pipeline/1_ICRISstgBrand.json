@@ -1,6 +1,32 @@
 {
 	"name": "1_ICRISstgBrand",
 	"properties": {
+		"activities": [
+			{
+				"name": "1_ProcessBrazilDataToICRIS_Brand_DF",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "1_ProcessBrazilDataToICRIS_Brand_DF",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 16,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
 		"variables": {
 			"COUNT": {
 				"type": "Integer"
