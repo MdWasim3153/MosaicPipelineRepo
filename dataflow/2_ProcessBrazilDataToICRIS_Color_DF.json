@@ -39,24 +39,24 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "stgIngredientTempData",
+						"referenceName": "ICRISstgColor",
 						"type": "DatasetReference"
 					},
-					"name": "InsertStgColor"
+					"name": "InsertICRISColor"
 				},
 				{
 					"dataset": {
-						"referenceName": "stgIngredientTempData",
+						"referenceName": "ICRISstgColor",
 						"type": "DatasetReference"
 					},
-					"name": "UpdateStgColor"
+					"name": "UpdateICRISColor"
 				},
 				{
 					"dataset": {
-						"referenceName": "stgIngredientTempData",
+						"referenceName": "ICRISstgColor",
 						"type": "DatasetReference"
 					},
-					"name": "DeletedColor"
+					"name": "DeleteICRISColor"
 				}
 			],
 			"transformations": [
@@ -88,9 +88,6 @@
 					"name": "select4"
 				},
 				{
-					"name": "filter2"
-				},
-				{
 					"name": "select5"
 				},
 				{
@@ -103,13 +100,16 @@
 					"name": "join7"
 				},
 				{
-					"name": "filter3"
-				},
-				{
 					"name": "select7"
 				},
 				{
 					"name": "derivedColumn2"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "alterRow2"
 				}
 			],
 			"scriptLines": [
@@ -282,8 +282,8 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select3 derive(DateCreated = iif(isNull({version_date(CLR)}), toDate('1900-01-01'), toDate('{version_date(CLR)}')),",
-				"          DateModified = iif(isNull({version_date(CLR)}), toDate('1900-01-01', 'yyyy-MM-dd'), toDate('{version_date(CLR)}', 'yyyy-MM-dd')),",
+				"select3 derive(NewDateCreated = iif(isNull({version_date(CLR)}), toDate('1900-01-01'), toDate('{version_date(CLR)}')),",
+				"          NewDateModified = iif(isNull({version_date(CLR)}), toDate('1900-01-01', 'yyyy-MM-dd'), toDate('{version_date(CLR)}', 'yyyy-MM-dd')),",
 				"          NewId = '0',",
 				"          NewUse = 'true',",
 				"          NewRed = '0',",
@@ -305,14 +305,13 @@
 				"          Blue = NewBlue,",
 				"          Effect = {target(JSON)},",
 				"          Deleted = NewDeleted,",
-				"          DateCreated,",
-				"          DateModified,",
+				"          DateCreated = NewDateCreated,",
+				"          DateModified = NewDateModified,",
 				"          DateModifiedTalend = {last_update(CLR)}",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
-				"derivedColumn1 filter(!isNull({StagingId(ICRISCLR)}) && !isNull({source(JSON)})) ~> filter2",
-				"filter2 select(mapColumn(",
+				"alterRow1 select(mapColumn(",
 				"          StagingId = {id(CLR)},",
 				"          Code = {universal_code(CLR)},",
 				"          BrandCode = {brand(CLR)},",
@@ -322,7 +321,7 @@
 				"          Use = NewUse,",
 				"          Deleted = NewDeleted,",
 				"          Effect = {target(JSON)},",
-				"          DateModified,",
+				"          DateModified = NewDateModified,",
 				"          DateModifiedTalend = {last_update(CLR)}",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
@@ -357,36 +356,137 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join7",
-				"join7 filter(isNull({id(CLR)})) ~> filter3",
 				"derivedColumn2 select(mapColumn(",
-				"          Id,",
+				"          StagingId,",
 				"          NewDeleted,",
 				"          NewDateModifiedTalend",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select7",
-				"filter3 derive(NewDeleted = 'True',",
+				"alterRow2 derive(NewDeleted = 'True',",
 				"          NewDateModifiedTalend = currentDate('DateModifiedTalend')) ~> derivedColumn2",
+				"derivedColumn1 alterRow(updateIf(!isNull({StagingId(ICRISCLR)}) && !isNull({source(JSON)}))) ~> alterRow1",
+				"join7 alterRow(deleteIf(isNull({id(CLR)}))) ~> alterRow2",
 				"select4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          StagingId as string,",
+				"          Code as string,",
+				"          BrandCode as string,",
+				"          VariantCode as string,",
+				"          Year as string,",
+				"          Name as string,",
+				"          Use as boolean,",
+				"          Red as integer,",
+				"          Green as integer,",
+				"          Blue as integer,",
+				"          Effect as integer,",
+				"          Deleted as boolean,",
+				"          DateCreated as timestamp,",
+				"          DateModified as timestamp,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1) ~> InsertStgColor",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          StagingId,",
+				"          Code,",
+				"          BrandCode,",
+				"          VariantCode,",
+				"          Year,",
+				"          Name,",
+				"          Use,",
+				"          Red,",
+				"          Green,",
+				"          Blue,",
+				"          Effect,",
+				"          Deleted,",
+				"          DateCreated,",
+				"          DateModified,",
+				"          DateModifiedTalend",
+				"     )) ~> InsertICRISColor",
 				"select5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          StagingId as string,",
+				"          Code as string,",
+				"          BrandCode as string,",
+				"          VariantCode as string,",
+				"          Year as string,",
+				"          Name as string,",
+				"          Use as boolean,",
+				"          Red as integer,",
+				"          Green as integer,",
+				"          Blue as integer,",
+				"          Effect as integer,",
+				"          Deleted as boolean,",
+				"          DateCreated as timestamp,",
+				"          DateModified as timestamp,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2) ~> UpdateStgColor",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          StagingId,",
+				"          Code,",
+				"          BrandCode,",
+				"          VariantCode,",
+				"          Name,",
+				"          Effect,",
+				"          DateModified,",
+				"          DateModifiedTalend",
+				"     )) ~> UpdateICRISColor",
 				"select7 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          StagingId as string,",
+				"          Code as string,",
+				"          BrandCode as string,",
+				"          VariantCode as string,",
+				"          Year as string,",
+				"          Name as string,",
+				"          Use as boolean,",
+				"          Red as integer,",
+				"          Green as integer,",
+				"          Blue as integer,",
+				"          Effect as integer,",
+				"          Deleted as boolean,",
+				"          DateCreated as timestamp,",
+				"          DateModified as timestamp,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 3,",
+				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          Id,",
+				"          StagingId = Id,",
 				"          Deleted = NewDeleted,",
 				"          DateModifiedTalend = NewDateModifiedTalend",
-				"     )) ~> DeletedColor"
+				"     )) ~> DeleteICRISColor"
 			]
 		}
 	}
