@@ -66,9 +66,6 @@
 					"name": "select3"
 				},
 				{
-					"name": "filter1"
-				},
-				{
 					"name": "derivedColumn3"
 				},
 				{
@@ -76,6 +73,9 @@
 				},
 				{
 					"name": "alterRow1"
+				},
+				{
+					"name": "alterRow2"
 				}
 			],
 			"scriptLines": [
@@ -140,8 +140,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
-				"select2 filter(isNull({id(INBR)}) || {id(INBR)} == '') ~> filter1",
-				"filter1 derive(NewDeleted = '1',",
+				"alterRow2 derive(NewDeleted = '1',",
 				"          DelDateModTalend = currentDate('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn3",
 				"derivedColumn3 select(mapColumn(",
 				"          Code = {Code(INICRISBR)},",
@@ -151,6 +150,7 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select4",
 				"select2 alterRow(updateIf(isNull({Code(INICRISBR)}))) ~> alterRow1",
+				"select2 alterRow(deleteIf(isNull({id(INBR)}) || {id(INBR)} == '')) ~> alterRow2",
 				"SelectingAllValues sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -210,10 +210,11 @@
 				"          DateModifiedTalend as timestamp,",
 				"          Id as integer",
 				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
+				"     deletable:true,",
+				"     insertable:false,",
 				"     updateable:false,",
 				"     upsertable:false,",
+				"     keys:['Code'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
