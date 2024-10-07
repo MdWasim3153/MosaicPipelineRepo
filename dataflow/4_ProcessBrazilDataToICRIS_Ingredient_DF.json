@@ -80,13 +80,6 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "DLstgIngredientoutput",
-						"type": "DatasetReference"
-					},
-					"name": "DLstgIngredientoutput"
-				},
-				{
-					"dataset": {
 						"referenceName": "ICRISStgIngredient",
 						"type": "DatasetReference"
 					},
@@ -98,6 +91,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "UpdateICIRSIngre"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISStgIngredient",
+						"type": "DatasetReference"
+					},
+					"name": "DeleteIngredient"
 				}
 			],
 			"transformations": [
@@ -708,11 +708,11 @@
 				"derivedColumn3 select(mapColumn(",
 				"          DateModifiedTalend,",
 				"          TalendId,",
-				"          Deleted",
+				"          Deleted = NewDeleted",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select12",
-				"DLICRISStgIng derive(Deleted = '1') ~> derivedColumn3",
+				"DLICRISStgIng derive(NewDeleted = '1') ~> derivedColumn3",
 				"derivedColumn1 filter(isNull({ProductCode(ICRISINGRE3)})) ~> filter1",
 				"UpdateICRISstgIngredient select(mapColumn(",
 				"          {id(UING)},",
@@ -768,11 +768,6 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select13",
 				"derivedColumn2 alterRow(updateIf(!isNull({ProductCode(UINGRE3)}))) ~> alterRow1",
-				"select12 sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1) ~> DLstgIngredientoutput",
 				"filter1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -793,6 +788,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          FormulaId = NewFormulaId,",
@@ -824,13 +820,41 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          TalendId = {TalendId(UINGRE3)},",
 				"          Amount = {amount(UING)},",
 				"          DateModifiedTalend = {last_update(UCLR)},",
 				"          Deleted = {Deleted(UINGRE3)}",
-				"     )) ~> UpdateICIRSIngre"
+				"     )) ~> UpdateICIRSIngre",
+				"select12 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          FormulaId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Line as integer,",
+				"          ProductCode as string,",
+				"          Amount as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp,",
+				"          TalendId as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          TalendId,",
+				"          DateModifiedTalend,",
+				"          Deleted",
+				"     )) ~> DeleteIngredient"
 			]
 		}
 	}
