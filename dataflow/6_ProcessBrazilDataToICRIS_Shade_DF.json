@@ -37,7 +37,7 @@
 						"referenceName": "stgVariant",
 						"type": "DatasetReference"
 					},
-					"name": "stgVariantNotNull"
+					"name": "stgVariantNotNullQuery"
 				},
 				{
 					"dataset": {
@@ -67,14 +67,7 @@
 						"referenceName": "stgIngredientTempData",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
-				},
-				{
-					"dataset": {
-						"referenceName": "stgIngredientTempData",
-						"type": "DatasetReference"
-					},
-					"name": "NewFmInsert"
+					"name": "Update"
 				},
 				{
 					"dataset": {
@@ -82,6 +75,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "DelUpdate"
+				},
+				{
+					"dataset": {
+						"referenceName": "ICRISstgFormulaMeasurement",
+						"type": "DatasetReference"
+					},
+					"name": "NewFmInsert"
 				}
 			],
 			"transformations": [
@@ -98,7 +98,7 @@
 					"name": "select2"
 				},
 				{
-					"name": "Description"
+					"name": "SettingUpAngle"
 				},
 				{
 					"name": "select3"
@@ -134,9 +134,6 @@
 					"name": "stagingidisnull"
 				},
 				{
-					"name": "stagingidisnotnull"
-				},
-				{
 					"name": "join1"
 				},
 				{
@@ -150,6 +147,9 @@
 				},
 				{
 					"name": "derivedColumn2"
+				},
+				{
+					"name": "alterIfStagingIdnotNull"
 				}
 			],
 			"scriptLines": [
@@ -215,7 +215,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'select * from stg_Variant where color_Variant is not null',",
-				"     format: 'query') ~> stgVariantNotNull",
+				"     format: 'query') ~> stgVariantNotNullQuery",
 				"source(output(",
 				"          Id as integer,",
 				"          TalendId as integer,",
@@ -283,7 +283,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1, stgVariantNotNull join({color(INSPC)} == color_variant,",
+				"select1, stgVariantNotNullQuery join({color(INSPC)} == color_variant,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -313,8 +313,8 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
-				"select2 derive(descrip = iif({angle(INSPC)}==15 || {angle(INSPC)}==45 || {angle(INSPC)}==75, 'true','false')) ~> Description",
-				"Description select(mapColumn(",
+				"select2 derive(descrip = iif({angle(INSPC)}==15 || {angle(INSPC)}==45 || {angle(INSPC)}==75, 'true','false')) ~> SettingUpAngle",
+				"SettingUpAngle select(mapColumn(",
 				"          {graininess(INSPC)},",
 				"          {id(INCLR)},",
 				"          {universal_code(INCLR)},",
@@ -428,7 +428,6 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select8",
 				"select8 filter(isNull(StagingId)) ~> stagingidisnull",
-				"select8 filter(!isNull(StagingId)) ~> stagingidisnotnull",
 				"stgColor, stgVariant join(stgColor@id == color_variant,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -469,21 +468,48 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select10",
 				"joinICRISFRMMMT derive(CURDATE = currentUTC('DateModifiedTalend')) ~> derivedColumn2",
-				"stagingidisnotnull sink(allowSchemaDrift: true,",
+				"select8 alterRow(updateIf(!isNull(StagingId))) ~> alterIfStagingIdnotNull",
+				"alterIfStagingIdnotNull sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 3) ~> sink1",
-				"stagingidisnull sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1) ~> NewFmInsert",
+				"     saveOrder: 2) ~> Update",
 				"select10 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2) ~> DelUpdate"
+				"     saveOrder: 1) ~> DelUpdate",
+				"stagingidisnull sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          FormulaId as integer,",
+				"          TalendId as integer,",
+				"          StagingId as string,",
+				"          FormulaTalendId as integer,",
+				"          Description as string,",
+				"          Graininess as double,",
+				"          Deleted as boolean,",
+				"          DateModifiedTalend as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id = TMID,",
+				"          FormulaId = TMFRID,",
+				"          StagingId,",
+				"          FormulaTalendId,",
+				"          Description,",
+				"          Graininess,",
+				"          Deleted = Delete,",
+				"          DateModifiedTalend",
+				"     )) ~> NewFmInsert"
 			]
 		}
 	}
