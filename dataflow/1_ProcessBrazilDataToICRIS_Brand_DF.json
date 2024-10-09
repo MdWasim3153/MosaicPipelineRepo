@@ -100,7 +100,7 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISstgBrand",
 				"CodeIsNull derive(newId = '0',",
-				"          newDeleted = '0',",
+				"          newDeleted = 'False',",
 				"          changedModifiedDate = currentUTC('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn1",
 				"select2 filter(isNull({Code(INICRISBR)})) ~> CodeIsNull",
 				"derivedColumn1 select(mapColumn(",
