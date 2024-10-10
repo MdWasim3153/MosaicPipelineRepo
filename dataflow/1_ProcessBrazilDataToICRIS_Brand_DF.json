@@ -18,6 +18,9 @@
 						"type": "DatasetReference"
 					},
 					"name": "ICRISstgBrand"
+				},
+				{
+					"name": "source1"
 				}
 			],
 			"sinks": [
@@ -99,6 +102,8 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ICRISstgBrand",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> source1",
 				"CodeIsNull derive(newId = '0',",
 				"          newDeleted = 'False',",
 				"          changedModifiedDate = currentUTC('{DateModifiedTalend(INICRISBR)}')) ~> derivedColumn1",

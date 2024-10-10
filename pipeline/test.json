@@ -1,0 +1,34 @@
+{
+	"name": "test",
+	"properties": {
+		"activities": [
+			{
+				"name": "Script1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "BRSpectro",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT \n0 Id,\nIsNull(ic.stagingid,a.Id) StagingId,\na.universal_code Code,\na.brand BrandCode,\nb.description VariantCode, \na.year 'Year',\na.color_name 'Name',\n1 [Use] ,\nic.Red,\nic.Green,\nic.Blue,\njs.[target] Effect,\n0 Deleted,\n\nCASE\nWHEN a.version_date IS NULL THEN CAST('1900-01-01' AS DATE)\nELSE CAST(a.version_date AS DATE)\nEND AS DateCreated,\n\nCASE\nWHEN a.version_date IS NULL THEN CAST('1900-01-01' AS DATE)\nELSE CAST(a.version_date AS DATE)\nEND AS DateModified,\n\na.last_update DateModifiedTalend\nFROM\nstg_color a\nLEFT OUTER JOIN stg_variant b ON a.id = b.color_variant \nLEFT OUTER JOIN icris_stg_color ic ON a.id = ic.stagingid\nLEFT OUTER JOIN tFixedFlowInput js on a.effect = js.source\nWhere ic.stagingid Is Null and js.source is not null"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
