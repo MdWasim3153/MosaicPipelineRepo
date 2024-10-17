@@ -1,0 +1,19 @@
+{
+	"name": "StartTriggerDemo",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/demoadfcontainer/blobs/demostorageadfsample/demoadfcontainer/sampleinput.csv",
+			"blobPathEndsWith": "/sampleinput.csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/4fd4fce4-b3bd-4b5a-bcc6-3584510a5380/resourceGroups/BlobStorageRG/providers/Microsoft.Storage/storageAccounts/demostorageadfsample",
+			"events": [
+				"Microsoft.Storage.BlobDeleted",
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

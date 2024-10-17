@@ -1,0 +1,45 @@
+{
+	"name": "DelimitedTextInputCSV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageLS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Env_Name": {
+				"type": "string",
+				"defaultValue": "dev"
+			},
+			"Floder_Name": {
+				"type": "string",
+				"defaultValue": "Input"
+			},
+			"File_Name": {
+				"type": "string",
+				"defaultValue": "sampleinput.csv"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().File_Name",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat(dataset().Env_Name, '/', dataset().Floder_Name)\n\n",
+					"type": "Expression"
+				},
+				"container": "demoadfcontainer"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
